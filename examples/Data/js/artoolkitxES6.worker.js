@@ -24,7 +24,7 @@ var _cameraParaFileURL;
 var videoWidth, videoHeight;
 var trackable = {
   trackableType: "2d",
-  url: './Data/pinball.jpg',
+  url: '../../../examples/Data/pinball.jpg',
   width: 1.0
 }
 
@@ -42,6 +42,8 @@ function load(msg) {
       postMessage({ type: 'loaded', proj: JSON.stringify(cameraMatrix) })
       // This line will pass imageData through the process() function... not ready yet...
       // ar = arController;
+      var trackableId = arController.addTrackable(trackable);
+      console.log(trackableId);
       arController.addEventListener('getMarker', function(e){
         console.log(e);
       })

@@ -5,6 +5,13 @@ interface ImageObj {
     height: number;
     data: Uint8ClampedArray;
 }
+interface ITrackableObj {
+    width: number;
+    height: number;
+    trackableType: string;
+    barcodeId: number;
+    url: string;
+}
 export default class ARControllerX {
     private options;
     private id;
@@ -37,6 +44,11 @@ export default class ARControllerX {
     private canvas;
     private ctx;
     private defaultMarkerWidth;
+    private default2dHeight;
+    private _patternDetection;
+    private userSetPatternDetection;
+    private _marker_count;
+    private has2DTrackable;
     private _bwpointer;
     constructor(image: object, cameraPara: string, confWidth: number, confHeight: number);
     static init(image: ImageObj, cameraUrl: string, width: number, height: number): Promise<ARControllerX>;
@@ -47,6 +59,7 @@ export default class ARControllerX {
     _processImage(image: ImageObj): void;
     private _prepareImage;
     getCameraProjMatrix(nearPlane?: number, farPlane?: number): Float32Array;
+    addTrackable(trackableObj: ITrackableObj): Promise<number>;
     addEventListener(name: string, callback: object): void;
     removeEventListener(name: string, callback: object): void;
     dispatchEvent(event: {
@@ -60,6 +73,10 @@ export default class ARControllerX {
     getCameraMatrix(): Float32Array;
     setLogLevel(mode: boolean): number;
     getLogLevel(): number;
+    _loadTrackable(url: string): Promise<unknown>;
+    setPatternDetectionMode(mode: number): number;
+    private _setPatternDetectionMode;
+    _updateDetectionMode(): void;
     private converter;
 }
 export {};

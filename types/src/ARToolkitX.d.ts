@@ -40,6 +40,16 @@ export default class ARToolkitX {
     shutdownAR: () => void;
     setLogLevel: (mode: boolean) => number;
     getLogLevel: () => number;
+    addTrackable: (config: string) => number;
+    setTrackerOptionInt: (value: number, mode: number) => number;
+    TrackableOptions: {
+        ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: {
+            value: number;
+        };
+    };
+    AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX: number;
+    AR_MATRIX_CODE_DETECTION: number;
+    AR_TEMPLATE_MATCHING_COLOR: number;
     constructor();
     init(): Promise<this>;
     private _decorate;
