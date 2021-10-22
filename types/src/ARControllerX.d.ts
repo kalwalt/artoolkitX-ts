@@ -74,7 +74,6 @@ export default class ARControllerX {
     setLogLevel(mode: boolean): number;
     getLogLevel(): number;
     _loadTrackable(url: string): Promise<unknown>;
-    _ajax: (url: string, target: string, that: any) => Promise<unknown>;
     setPatternDetectionMode(mode: number): number;
     private _setPatternDetectionMode;
     _updateDetectionMode(): void;
