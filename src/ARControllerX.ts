@@ -72,6 +72,8 @@ interface delegateMethods {
     isInitialized: () => boolean;
     _arwUpdateAR: () => number;
     _queryTrackableVisibility: (id: number) => Float64Array;
+    _malloc: (numBytes: number) => number;
+    _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float64Array;
     videoMalloc: {
       framepointer: number;
       framesize: number;
@@ -105,6 +107,7 @@ export default class ARControllerX {
   private orientation: string;
   private cameraParam: string;
   private cameraParaFileURL: string;
+  public _projectionMatPtr: number;
   private cameraId: number;
   private cameraLoaded: boolean;
   private artoolkitX: delegateMethods;
@@ -156,6 +159,7 @@ export default class ARControllerX {
     this.cameraParaFileURL = cameraPara
     this.cameraId = -1
     this.cameraLoaded = false
+    this._projectionMatPtr
 
     // toolkit instance
     this.artoolkitX
@@ -266,6 +270,8 @@ export default class ARControllerX {
       } catch (e) {
         console.error('Unable to start running')
       }
+      this._processImage(image)
+    } else {
       this._processImage(image)
     }
   }
@@ -379,6 +385,20 @@ export default class ARControllerX {
     }*/
     return ret
   };
+
+  public getCameraProjMatrix(nearPlane = 0.1, farPlane = 1000) {
+    const cameraMatrixElements = 16
+    const numBytes: number = cameraMatrixElements * Float32Array.BYTES_PER_ELEMENT
+    this._projectionMatPtr = this.artoolkitX._malloc(numBytes)
+    // Call compiled C-function directly using '_' notation
+    // https://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-direct-function-calls
+    const cameraMatrix = this.artoolkitX._arwGetProjectionMatrix(nearPlane, farPlane, this._projectionMatPtr)
+    const matrix = new Float32Array(this.artoolkitX.instance.HEAPU8.buffer, this._projectionMatPtr, cameraMatrixElements)
+    if (cameraMatrix) {
+      return matrix
+    }
+    return undefined
+  }
 
   // event handling
   //----------------------------------------------------------------------------

@@ -30,10 +30,23 @@ var trackable = {
 
 function load(msg) {
 
-  ARToolkitX.ARControllerX.init(0, msg.camera_para, msg.pw, msg.ph).then((ar) => {
-    console.log('ar is: ', ar);
-    ar.start().then(_ => {
+  ARToolkitX.ARControllerX.init(0, msg.camera_para, msg.pw, msg.ph).then((arController) => {
+    console.log('arController is: ', arController);
+    
+    arController.start().then(_ => {
+
       console.log('We are ready...');
+      let cameraMatrix = arController.getCameraProjMatrix()
+      console.log('camera projection matrix: ', camPM);
+      // We send the camera matrix outside the worker
+      postMessage({ type: 'loaded', proj: JSON.stringify(cameraMatrix) })
+      // This line will pass imageData through the process() function... not ready yet...
+      // ar = arController;
+      arController.addEventListener('getMarker', function(e){
+        console.log(e);
+      })
+      
+      
 
     })
   })

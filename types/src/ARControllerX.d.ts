@@ -15,6 +15,7 @@ export default class ARControllerX {
     private orientation;
     private cameraParam;
     private cameraParaFileURL;
+    _projectionMatPtr: number;
     private cameraId;
     private cameraLoaded;
     private artoolkitX;
@@ -43,6 +44,7 @@ export default class ARControllerX {
     process(image: ImageObj): Promise<void>;
     _processImage(image: ImageObj): void;
     private _prepareImage;
+    getCameraProjMatrix(nearPlane?: number, farPlane?: number): Float32Array;
     addEventListener(name: string, callback: object): void;
     removeEventListener(name: string, callback: object): void;
     dispatchEvent(event: {

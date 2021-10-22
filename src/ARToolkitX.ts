@@ -63,6 +63,8 @@ export default class ARToolkitX {
   public pushVideoInit: (n: number, width: number, height: number, pixelformat: string, a: number, b: number) => number;
   public _arwUpdateAR: () => number;
   public _queryTrackableVisibility: (id: number) => Float64Array;
+  public _malloc: (numBytes: number) => number;
+  public _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float64Array;
   public videoMalloc: {
     framepointer: number;
     framesize: number;
