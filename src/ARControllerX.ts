@@ -73,6 +73,7 @@ interface delegateMethods {
     _arwUpdateAR: () => number;
     _queryTrackableVisibility: (id: number) => Float64Array;
     _malloc: (numBytes: number) => number;
+    _free: (pointer: number) => void;
     _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float64Array;
     videoMalloc: {
       framepointer: number;
@@ -88,6 +89,8 @@ interface delegateMethods {
     };
     setValue: (pointer: number, a: number, type: string) => void;
     _arwCapture: () => number;
+    stopRunning: () => void;
+    shutdownAR: () => void;
 }
 
 const ORIENTATION = {
@@ -114,6 +117,7 @@ export default class ARControllerX {
   private listeners: object;
   private trackables: Array<ITrackable>;
   private transform_mat: Float64Array;
+  private _transMatPtr: number;
   private marker_transform_mat: Float64Array;
   private transformGL_RH: Float64Array;
   private videoWidth: number;
@@ -160,6 +164,7 @@ export default class ARControllerX {
     this.cameraId = -1
     this.cameraLoaded = false
     this._projectionMatPtr
+    this._transMatPtr
 
     // toolkit instance
     this.artoolkitX
@@ -253,6 +258,24 @@ export default class ARControllerX {
     }
 
   }
+
+  /**
+        Destroys the ARController instance and frees all associated resources.
+        After calling dispose, the ARController can't be used any longer. Make a new one if you need one.
+
+        Calling this avoids leaking Emscripten memory.
+    */
+  public dispose() {
+    this.artoolkitX._free(this._transMatPtr)
+    /*if (this.image && this.image.srcObject) {
+      this[_teardownVideo]()
+    }*/
+    this.artoolkitX.stopRunning()
+    this.artoolkitX.shutdownAR()
+    for (var t in this) {
+      this[t] = null
+    }
+  };
 
   /**
    * This is one of the most important method inside ARControllerNFT. It detect the marker
