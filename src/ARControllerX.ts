@@ -34,7 +34,8 @@
  *
  */
 import ARToolkitX from './ARToolkitX'
-
+import Utils from './Utils'
+ 
 interface Options {
   canvas: null,
   orientation: string,
@@ -51,46 +52,68 @@ interface ImageObj {
 interface ITrackable {
   trackableId: number;
   transformation: Float64Array;
-  arCameraViewRH: Float64Array;
-  visible: boolean;
-  scale: number;
+  arCameraViewRH?: Float64Array;
+  visible?: boolean;
+  scale?: number;
+}
+
+interface ITrackableObj {
+  width: number;
+  height: number;
+  trackableType: string;
+  barcodeId: number;
+  url: string;
+}
+
+interface IPatternDetectionObj {
+  barcode: boolean,
+  template: boolean,
+
 }
 
 interface delegateMethods {
-    initialiseAR: () => number;
-    getARToolKitVersion: () => number;
-    setLogLevel: (mode: boolean) => number;
-    getLogLevel: () => number;
-    instance: {
-      HEAPU8: {
-        buffer: Uint8Array
-      };
-    }
-    loadCameraParam: (cameraParam: string) => Promise<string>;
-    arwStartRunningJS: (arCameraURL: string, width: number, height: number) => number;
-    pushVideoInit: (n: number, width: number, height: number, pixelformat: string, a: number, b: number) => number;
-    isInitialized: () => boolean;
-    _arwUpdateAR: () => number;
-    _queryTrackableVisibility: (id: number) => Float64Array;
-    _malloc: (numBytes: number) => number;
-    _free: (pointer: number) => void;
-    _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float64Array;
-    videoMalloc: {
-      framepointer: number;
-      framesize: number;
-      videoLumaPointer: number;
-      lumaFramePointer: number;
-      newFrameBoolPtr: number;
-      fillFlagIntPtr: number;
-      timeSecPtr: number;
-      timeMilliSecPtr: number;
-      camera: number;
-      transform: number
+  initialiseAR: () => number;
+  getARToolKitVersion: () => number;
+  setLogLevel: (mode: boolean) => number;
+  getLogLevel: () => number;
+  instance: {
+    HEAPU8: {
+      buffer: Uint8Array
     };
-    setValue: (pointer: number, a: number, type: string) => void;
-    _arwCapture: () => number;
-    stopRunning: () => void;
-    shutdownAR: () => void;
+  }
+  loadCameraParam: (cameraParam: string) => Promise<string>;
+  arwStartRunningJS: (arCameraURL: string, width: number, height: number) => number;
+  pushVideoInit: (n: number, width: number, height: number, pixelformat: string, a: number, b: number) => number;
+  isInitialized: () => boolean;
+  _arwUpdateAR: () => number;
+  _queryTrackableVisibility: (id: number) => Float64Array;
+  _malloc: (numBytes: number) => number;
+  _free: (pointer: number) => void;
+  _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float64Array;
+  videoMalloc: {
+    framepointer: number;
+    framesize: number;
+    videoLumaPointer: number;
+    lumaFramePointer: number;
+    newFrameBoolPtr: number;
+    fillFlagIntPtr: number;
+    timeSecPtr: number;
+    timeMilliSecPtr: number;
+    camera: number;
+    transform: number
+  };
+  setValue: (pointer: number, a: number, type: string) => void;
+  _arwCapture: () => number;
+  stopRunning: () => void;
+  shutdownAR: () => void;
+  addTrackable: (config: string) => number;
+  setTrackerOptionInt: (value: number, mode: number) => number;
+  TrackableOptions: {
+    ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: { value: number}
+  }
+  AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX: number;
+  AR_MATRIX_CODE_DETECTION: number;
+  AR_TEMPLATE_MATCHING_COLOR: number;
 }
 
 const ORIENTATION = {
@@ -132,6 +155,11 @@ export default class ARControllerX {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private defaultMarkerWidth: number;
+  private default2dHeight: number;
+  private _patternDetection: IPatternDetectionObj;
+  private userSetPatternDetection: boolean;
+  private _marker_count: number;
+  private has2DTrackable: boolean;
   private _bwpointer: number;
 
   /**
@@ -146,7 +174,7 @@ export default class ARControllerX {
    * @param {string} cameraParam
    * @param {object} options
    */
-  constructor (image: object, cameraPara: string, confWidth: number, confHeight: number) {
+  constructor(image: object, cameraPara: string, confWidth: number, confHeight: number) {
     this.id = -1
 
     this.width = confWidth
@@ -205,7 +233,9 @@ export default class ARControllerX {
     }
 
     this._bwpointer = null
-    this.defaultMarkerWidth = 1
+    this.defaultMarkerWidth = 80
+    this.default2dHeight = 0.001
+    this.has2DTrackable
   }
 
   static async init(image: ImageObj, cameraUrl: string, width: number, height: number) {
@@ -213,7 +243,7 @@ export default class ARControllerX {
     return await _arx._initialize();
   }
 
-  private async _initialize () {
+  private async _initialize() {
     // initialize the toolkit
     this.artoolkitX = await new ARToolkitX().init();
     console.log('[ARControllerX]', 'ARToolkitX initialized');
@@ -226,26 +256,26 @@ export default class ARControllerX {
     return this;
   }
 
-  async start () {
+  async start() {
     let success = this.artoolkitX.initialiseAR()
     if (success) {
       console.debug('Version: ' + this.artoolkitX.getARToolKitVersion())
       // Only try to load the camera parameter file if an URL was provided
       let arCameraURL: string = ''
       console.log(this.cameraParaFileURL);
-      
+
       if (this.cameraParaFileURL !== '') {
         try {
           arCameraURL = await this.artoolkitX.loadCameraParam(this.cameraParaFileURL)
           console.log(arCameraURL);
-          
+
         } catch (e) {
           throw new Error('Error loading camera param: ' + e)
         }
       }
       success = this.artoolkitX.arwStartRunningJS(arCameraURL, this.videoWidth, this.videoHeight)
       console.log(success);
-      
+
       if (success >= 0) {
         console.info(' artoolkitX-ts started')
         success = this.artoolkitX.pushVideoInit(0, this.videoWidth, this.videoHeight, 'RGBA', 0, 0)
@@ -284,7 +314,7 @@ export default class ARControllerX {
    * @param {image} image or image data
    * @return {void}
    */
-  public async process (image: ImageObj) {
+  public async process(image: ImageObj) {
     if (!image) { image = this.image }
 
     if (!this.artoolkitX.isInitialized()) {
@@ -299,13 +329,13 @@ export default class ARControllerX {
     }
   }
 
-  public _processImage (image: ImageObj) {
+  public _processImage(image: ImageObj) {
     try {
       this._prepareImage(image)
       const success = this.artoolkitX._arwUpdateAR()
 
       if (success >= 0) {
-        this.trackables.forEach( (trackable) => {
+        this.trackables.forEach((trackable) => {
           var that = this;
           const transformation = this.artoolkitX._queryTrackableVisibility(trackable.trackableId)
           if (transformation) {
@@ -341,7 +371,7 @@ export default class ARControllerX {
      * @returns {boolean} true if successfull
      * @private
      */
-   private _prepareImage (image: any) {
+  private _prepareImage(image: any) {
     if (!image) {
       image = this.image
     }
@@ -429,6 +459,56 @@ export default class ARControllerX {
     return undefined
   }
 
+  /**
+     * Loads a trackable into the artoolkitX contect by calling addTrackable on the artoolkitX native interface
+     *
+     * @param {object} trackableObj -
+     *              {
+     *                  trackableType:  {string} 'single_barcode' / 'multi' / 'single' / '2d'
+     *                  url: {string} '<URL to the trackable file in case of multi, single or 2d>'
+     *                  barcodeId: {number}
+     *                  width: {number} defaults to this.markerWidth if not set
+     *                  height: {number} if 2D trackable reflects height of trackable. If not set defaults to default2dHeight
+     *              }
+     * @returns {Promise} which resolves into a {number} trackable id if successfull or thorws an error
+     */
+  public async addTrackable(trackableObj: ITrackableObj) {
+    if (!trackableObj.width) { trackableObj.width = this.defaultMarkerWidth }
+    if (!trackableObj.height) trackableObj.height = this.default2dHeight
+    let fileName, trackableId
+    if (trackableObj.trackableType.includes('single') || trackableObj.trackableType.includes('2d')) {
+      if (trackableObj.barcodeId !== undefined) {
+        fileName = trackableObj.barcodeId
+        if (!this._patternDetection.barcode) {
+          this._patternDetection.barcode = true
+        }
+      } else {
+        try {
+          fileName = await this._loadTrackable(trackableObj.url)
+        } catch (error) {
+          throw new Error('Error to load trackable: ' + error)
+        }
+        if (!this._patternDetection.template) {
+          this._patternDetection.template = true
+        }
+      }
+      if (trackableObj.trackableType.includes('2d')) {
+        this.has2DTrackable = true
+        trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.height)
+      } else {
+        trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.width)
+      }
+    }
+
+    if (trackableId >= 0) {
+      this.trackables.push({ trackableId: trackableId, transformation: (new Float64Array(16)), visible: false })
+      if (!this.userSetPatternDetection) { this._updateDetectionMode() }
+      return trackableId
+    }
+    throw new Error('Faild to add Trackable: ' + trackableId)
+  }
+
+
   // event handling
   //----------------------------------------------------------------------------
 
@@ -444,7 +524,7 @@ export default class ARControllerX {
    * @param {function} callback Callback function to call when an event with the given name is dispatched.
    */
   addEventListener(name: string, callback: object) {
-    if(!this.converter().listeners[name]) {
+    if (!this.converter().listeners[name]) {
       this.converter().listeners[name] = [];
     }
     this.converter().listeners[name].push(callback);
@@ -456,9 +536,9 @@ export default class ARControllerX {
    * @param {function} callback Callback function to remove from the listeners of the named event.
    */
   removeEventListener(name: string, callback: object) {
-    if(this.converter().listeners[name]) {
+    if (this.converter().listeners[name]) {
       let index = this.converter().listeners[name].indexOf(callback);
-      if(index > -1) {
+      if (index > -1) {
         this.converter().listeners[name].splice(index, 1);
       }
     }
@@ -470,8 +550,8 @@ export default class ARControllerX {
    */
   dispatchEvent(event: { name: string; target: any; data?: object }) {
     let listeners = this.converter().listeners[event.name];
-    if(listeners) {
-      for(let i = 0; i < listeners.length; i++) {
+    if (listeners) {
+      for (let i = 0; i < listeners.length; i++) {
         listeners[i].call(this, event);
       }
     }
@@ -486,7 +566,7 @@ export default class ARControllerX {
    * @param {Float64Array} glMat The 4x4 GL transformation matrix.
    * @param {number} scale The scale for the transform.
    */
-  transMatToGLMat (transMat: Float64Array, glMat: Float64Array, scale?: number,) {
+  transMatToGLMat(transMat: Float64Array, glMat: Float64Array, scale?: number,) {
     if (glMat == undefined) {
       glMat = new Float64Array(16)
     }
@@ -524,7 +604,7 @@ export default class ARControllerX {
    * @param {Float64Array} [glRhMatrix] The 4x4 GL right hand transformation matrix.
    * @param {number} [scale] The scale for the transform.
    */
-  arglCameraViewRHf (glMatrix: Float64Array, glRhMatrix?: Float64Array, scale?: number) {
+  arglCameraViewRHf(glMatrix: Float64Array, glRhMatrix?: Float64Array, scale?: number) {
     let m_modelview
     if (glRhMatrix == undefined) { m_modelview = new Float64Array(16) } else { m_modelview = glRhMatrix }
 
@@ -567,7 +647,7 @@ export default class ARControllerX {
    * Unique to each ARControllerX.
    * @return {Float64Array} The 16-element WebGL transformation matrix used by the ARControllerX.
    */
-   getTransformationMatrix () {
+  getTransformationMatrix() {
     return this.transform_mat
   };
 
@@ -575,16 +655,16 @@ export default class ARControllerX {
    * Returns the projection matrix computed from camera parameters for the ARControllerX.
    * @return {Float64Array} The 16-element WebGL camera matrix for the ARControllerX camera parameters.
    */
-   getCameraMatrix () {
+  getCameraMatrix() {
     return this.camera_mat
   };
 
-  
+
   /**
    * Sets the logging level to use by ARToolKitX.
    * @param {number} mode type for the log level.
    */
-  setLogLevel (mode: boolean) {
+  setLogLevel(mode: boolean) {
     return this.artoolkitX.setLogLevel(mode);
   };
 
@@ -592,10 +672,70 @@ export default class ARControllerX {
    * Gets the logging level used by ARToolKit.
    * @return {number} return the log level in use.
    */
-  getLogLevel () {
+  getLogLevel() {
     return this.artoolkitX.getLogLevel();
   };
 
+  public async _loadTrackable(url: string) {
+    var filename = '/trackable_' + this._marker_count++
+    try {
+      await Utils.fetchRemoteData(url)
+      return filename
+    } catch (e) {
+      console.log(e)
+      return e
+    }
+  }
+
+  /**
+       Set the pattern detection mode
+
+       The pattern detection determines the method by which ARToolKitX
+       matches detected squares in the video image to marker templates
+       and/or IDs. ARToolKitX v4.x can match against pictorial "template" markers,
+       whose pattern files are created with the mk_patt utility, in either colour
+       or mono, and additionally can match against 2D-barcode-type "matrix"
+       markers, which have an embedded marker ID. Two different two-pass modes
+       are also available, in which a matrix-detection pass is made first,
+       followed by a template-matching pass.
+
+       @param {number} mode
+           Options for this field are:
+           artoolkitX.AR_TEMPLATE_MATCHING_COLOR
+           artoolkitX.AR_TEMPLATE_MATCHING_MONO
+           artoolkitX.AR_MATRIX_CODE_DETECTION
+           artoolkitX.AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX
+           artoolkitX.AR_TEMPLATE_MATCHING_MONO_AND_MATRIX
+           The default mode is AR_TEMPLATE_MATCHING_COLOR.
+   */
+  public setPatternDetectionMode(mode: number) {
+    this.userSetPatternDetection = true
+    return this._setPatternDetectionMode(mode)
+  };
+
+
+  /**
+    * Private function to set the pattenr detection mode.
+    * It is implemented like this to have the posibility to let the user set the pattern detection mode
+    * by still providing the automatism to allow to set the pattern detection mode depending on the registered trackables (see {@link #addTrackable}).
+    * @param {*} mode see {@link #setPatternDetectionMode}
+    */
+  private _setPatternDetectionMode(mode: number) {
+    return this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE.value, mode)
+  }
+
+  /**
+   * For ease of use check what kinds of markers have been added and set the detection mode accordingly
+   */
+  _updateDetectionMode() {
+    if (this._patternDetection.barcode && this._patternDetection.template) {
+      this.setPatternDetectionMode(this.artoolkitX.AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX)
+    } else if (this._patternDetection.barcode) {
+      this.setPatternDetectionMode(this.artoolkitX.AR_MATRIX_CODE_DETECTION)
+    } else {
+      this.setPatternDetectionMode(this.artoolkitX.AR_TEMPLATE_MATCHING_COLOR)
+    }
+  }
 
   // private accessors
   // ----------------------------------------------------------------------------
