@@ -1,0 +1,61 @@
+interface ImageObj {
+    videoWidth: number;
+    width: number;
+    videoHeight: number;
+    height: number;
+    data: Uint8ClampedArray;
+}
+export default class ARControllerX {
+    private options;
+    private id;
+    private width;
+    private height;
+    private image;
+    private imageData;
+    private orientation;
+    private cameraParam;
+    private cameraParaFileURL;
+    private cameraId;
+    private cameraLoaded;
+    private artoolkitX;
+    private listeners;
+    private trackables;
+    private transform_mat;
+    private marker_transform_mat;
+    private transformGL_RH;
+    private videoWidth;
+    private videoHeight;
+    private videoSize;
+    private framepointer;
+    private framesize;
+    private dataHeap;
+    private videoLuma;
+    private camera_mat;
+    private videoLumaPointer;
+    private canvas;
+    private ctx;
+    private defaultMarkerWidth;
+    private _bwpointer;
+    constructor(image: object, cameraPara: string, confWidth: number, confHeight: number);
+    static init(image: ImageObj, cameraUrl: string, width: number, height: number): Promise<ARControllerX>;
+    private _initialize;
+    start(): Promise<void>;
+    process(image: ImageObj): Promise<void>;
+    _processImage(image: ImageObj): void;
+    private _prepareImage;
+    addEventListener(name: string, callback: object): void;
+    removeEventListener(name: string, callback: object): void;
+    dispatchEvent(event: {
+        name: string;
+        target: any;
+        data?: object;
+    }): void;
+    transMatToGLMat(transMat: Float64Array, glMat: Float64Array, scale?: number): Float64Array;
+    arglCameraViewRHf(glMatrix: Float64Array, glRhMatrix?: Float64Array, scale?: number): Float64Array;
+    getTransformationMatrix(): Float64Array;
+    getCameraMatrix(): Float64Array;
+    setLogLevel(mode: boolean): number;
+    getLogLevel(): number;
+    private converter;
+}
+export {};

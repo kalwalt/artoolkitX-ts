@@ -1,0 +1,62 @@
+{
+  "name": "@kalwalt/artoolkitx-ts",
+  "version": "0.0.1",
+  "main": "dist/ARToolkitX.js",
+  "types": "types/src/index.d.ts",
+  "description": "Emscripten port of ARToolKitX to Typescript.",
+  "keywords": [
+    "ARToolKit",
+    "ARToolKitX",
+    "ARToolKitX.js",
+    "ARToolKitX-ts",
+    "AR",
+    "Augmented Reality",
+    "WebAR",
+    "JavaScript",
+    "jsartoolkit",
+    "jsartoolkit5",
+    "NFT",
+    "markerless"
+  ],
+  "author": {
+    "name": "Walter Perdan",
+    "email": "github@kalwaltart.it",
+    "url": "https://www.kalwaltart.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kalwalt/artoolkitX-ts"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "homepage": "https://github.com/kalwalt/artoolkitX-ts",
+  "contributors": [
+    "Github Contributors (https://github.com/kalwalt/artoolkitX-ts/graphs/contributors)"
+  ],
+  "bugs": {
+    "url": "https://github.com/kalwalt/artoolkitX-ts/issues"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.15.8",
+    "@babel/plugin-transform-runtime": "^7.15.8",
+    "@babel/preset-env": "^7.15.8",
+    "babel-loader": "^8.2.2",
+    "ts-loader": "^9.2.6",
+    "typedoc": "^0.22.5",
+    "typescript": "^4.2.3",
+    "webpack": "^5.58.1",
+    "webpack-cli": "^4.9.0"
+  },
+  "scripts": {
+    "dev-ts": "webpack --mode development --progress --watch",
+    "docs": "typedoc",
+    "build-ts": "webpack --mode production"
+  },
+  "license": "LGPL-3.0",
+  "dependencies": {
+    "@babel/runtime": "^7.15.4",
+    "acorn": "^8.5.0",
+    "axios": "^0.23.0"
+  }
+}
