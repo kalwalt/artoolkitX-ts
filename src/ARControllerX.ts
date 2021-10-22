@@ -386,6 +386,12 @@ export default class ARControllerX {
     return ret
   };
 
+  /**
+  * Returns the projection matrix computed from camera parameters for the ARControllerX.
+  * @param nearPlane {number} the near plane value of the camera.
+  * @param farPlane {number} the far plane value of the camera.
+  * @return {Float32Array} The 16-element WebGL camera matrix for the ARControllerX camera parameters.
+  */
   public getCameraProjMatrix(nearPlane = 0.1, farPlane = 1000) {
     const cameraMatrixElements = 16
     const numBytes: number = cameraMatrixElements * Float32Array.BYTES_PER_ELEMENT
