@@ -68,7 +68,6 @@ interface ITrackableObj {
 interface IPatternDetectionObj {
   barcode: boolean,
   template: boolean,
-
 }
 
 interface delegateMethods {
@@ -176,6 +175,7 @@ export default class ARControllerX {
    */
   constructor(image: object, cameraPara: string, confWidth: number, confHeight: number) {
     this.id = -1
+    this._marker_count = 0
 
     this.width = confWidth
     this.height = confHeight
@@ -199,6 +199,10 @@ export default class ARControllerX {
 
     // to register observers as event listeners
     this.listeners = {}
+    this._patternDetection = {
+      barcode: false,
+      template: false,
+    }
 
     this.trackables = []
 
@@ -495,8 +499,10 @@ export default class ARControllerX {
       if (trackableObj.trackableType.includes('2d')) {
         this.has2DTrackable = true
         trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.height)
+        console.log(trackableId);    
       } else {
         trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.width)
+        console.log(trackableId);
       }
     }
 
@@ -678,6 +684,8 @@ export default class ARControllerX {
 
   public async _loadTrackable(url: string) {
     var filename = '/trackable_' + this._marker_count++
+    console.log(filename);
+    
     try {
       await Utils.fetchRemoteData(url)
       return filename
