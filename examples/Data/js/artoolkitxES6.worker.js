@@ -25,30 +25,35 @@ var videoWidth, videoHeight;
 var trackable = {
   trackableType: "2d",
   url: '../../../examples/Data/pinball.jpg',
-  width: 1.0
+  height: 1.0
 }
 
 function load(msg) {
 
   ARToolkitX.ARControllerX.init(0, msg.camera_para, msg.pw, msg.ph).then((arController) => {
     console.log('arController is: ', arController);
-    
-    arController.start().then(_ => {
+    try {
 
-      console.log('We are ready...');
-      let cameraMatrix = arController.getCameraProjMatrix()
-      console.log('camera projection matrix: ', cameraMatrix);
-      // We send the camera matrix outside the worker
-      postMessage({ type: 'loaded', proj: JSON.stringify(cameraMatrix) })
-      // This line will pass imageData through the process() function... not ready yet...
-      // ar = arController;
-       if(trackable) {
-        var trackableId = arController.addTrackable(trackable);
-       }
-      arController.addEventListener('getMarker', function(e){
-        console.log(e);
+      arController.start().then(_ => {
+
+        console.log('We are ready...');
+        let cameraMatrix = arController.getCameraProjMatrix()
+        console.log('camera projection matrix: ', cameraMatrix);
+        // We send the camera matrix outside the worker
+        postMessage({ type: 'loaded', proj: JSON.stringify(cameraMatrix) })
+        // This line will pass imageData through the process() function... not ready yet...
+        // ar = arController;
+        if (trackable) {
+          var trackableId = arController.addTrackable(trackable);
+        }
+        arController.addEventListener('getMarker', function (e) {
+          console.log(e);
+        })
       })
-    })
+    } catch (e) {
+      console.error(e)
+    }
+
   })
 
   console.debug('Loading camera at:', msg.camera_para);
