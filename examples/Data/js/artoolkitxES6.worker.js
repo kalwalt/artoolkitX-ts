@@ -42,8 +42,9 @@ function load(msg) {
       postMessage({ type: 'loaded', proj: JSON.stringify(cameraMatrix) })
       // This line will pass imageData through the process() function... not ready yet...
       // ar = arController;
-      var trackableId = arController.addTrackable(trackable);
-      console.log(trackableId);
+       if(trackable) {
+        var trackableId = arController.addTrackable(trackable);
+       }
       arController.addEventListener('getMarker', function(e){
         console.log(e);
       })
