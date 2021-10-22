@@ -499,19 +499,20 @@ export default class ARControllerX {
       if (trackableObj.trackableType.includes('2d')) {
         this.has2DTrackable = true
         trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.height)
-        console.log(trackableId);    
+        console.log('2d id: ', trackableId);    
       } else {
         trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.width)
-        console.log(trackableId);
+        console.log('other id: ', trackableId);
       }
     }
 
     if (trackableId >= 0) {
+      console.log(trackableId);
       this.trackables.push({ trackableId: trackableId, transformation: (new Float64Array(16)), visible: false })
       if (!this.userSetPatternDetection) { this._updateDetectionMode() }
       return trackableId
     }
-    throw new Error('Faild to add Trackable: ' + trackableId)
+    throw new Error('Failed to add Trackable: ' + trackableId)
   }
 
 
@@ -688,11 +689,73 @@ export default class ARControllerX {
     
     try {
       await Utils.fetchRemoteData(url)
+      //await this._ajax(url,filename, this)
       return filename
     } catch (e) {
       console.log(e)
       return e
     }
+  }
+
+  /*ARController[_loadTrackable] = async (url) => {
+    var filename = '/trackable_' + ARController._marker_count++
+    try {
+      await ARController[_ajax](url, filename)
+      return filename
+    } catch (e) {
+      console.log(e)
+      return e
+    }
+  }*/
+
+  // Eg.
+  //  ajax('../bin/Data2/markers.dat', '/Data2/markers.dat', callback);
+  //  ajax('../bin/Data/patt.hiro', '/patt.hiro', callback);
+  // Promise enabled: https://stackoverflow.com/a/48969580/5843642
+  /*ARController[_ajax] = (url, target) => {
+    return new Promise((resolve, reject) => {
+      const oReq = new window.XMLHttpRequest()
+      oReq.open('GET', url, true)
+      oReq.responseType = 'arraybuffer' // blob arraybuffer
+
+      oReq.onload = function () {
+        if (this.status === 200) {
+          // console.log('ajax done for ', url);
+          const arrayBuffer = oReq.response
+          const byteArray = new Uint8Array(arrayBuffer)
+          artoolkitXjs.FS.writeFile(target, byteArray, { encoding: 'binary' })
+          resolve(byteArray)
+        } else {
+          reject(this.status)
+        }
+      }
+      oReq.send()
+    })
+  }*/
+
+    // Eg.
+  //  ajax('../bin/Data2/markers.dat', '/Data2/markers.dat', callback);
+  //  ajax('../bin/Data/patt.hiro', '/patt.hiro', callback);
+  // Promise enabled: https://stackoverflow.com/a/48969580/5843642
+  public _ajax = (url: string, target: string, that: any) => {
+    return new Promise((resolve, reject) => {
+      const oReq = new XMLHttpRequest()
+      oReq.open('GET', url, true)
+      oReq.responseType = 'arraybuffer' // blob arraybuffer
+
+      oReq.onload = function () {
+        if (this.status === 200) {
+          // console.log('ajax done for ', url);
+          const arrayBuffer = oReq.response
+          const byteArray = new Uint8Array(arrayBuffer)
+          that.artoolkitX.instance.FS.writeFile(target, byteArray, { encoding: 'binary' })
+          resolve(byteArray)
+        } else {
+          reject(this.status)
+        }
+      }
+      oReq.send()
+    })
   }
 
   /**
