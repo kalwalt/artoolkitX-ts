@@ -107,7 +107,7 @@ export default class ARControllerX {
   private orientation: string;
   private cameraParam: string;
   private cameraParaFileURL: string;
-  public _projectionMatPtr: number;
+  private _projectionMatPtr: number;
   private cameraId: number;
   private cameraLoaded: boolean;
   private artoolkitX: delegateMethods;
@@ -123,7 +123,7 @@ export default class ARControllerX {
   private framesize: number;
   private dataHeap: Uint8Array;
   private videoLuma: Uint8ClampedArray;
-  private camera_mat: Float64Array;
+  private camera_mat: Float32Array;
   private videoLumaPointer: number;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -393,9 +393,9 @@ export default class ARControllerX {
     // Call compiled C-function directly using '_' notation
     // https://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-direct-function-calls
     const cameraMatrix = this.artoolkitX._arwGetProjectionMatrix(nearPlane, farPlane, this._projectionMatPtr)
-    const matrix = new Float32Array(this.artoolkitX.instance.HEAPU8.buffer, this._projectionMatPtr, cameraMatrixElements)
+    this.camera_mat = new Float32Array(this.artoolkitX.instance.HEAPU8.buffer, this._projectionMatPtr, cameraMatrixElements)
     if (cameraMatrix) {
-      return matrix
+      return this.camera_mat
     }
     return undefined
   }

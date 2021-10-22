@@ -15,7 +15,7 @@ export default class ARControllerX {
     private orientation;
     private cameraParam;
     private cameraParaFileURL;
-    _projectionMatPtr: number;
+    private _projectionMatPtr;
     private cameraId;
     private cameraLoaded;
     private artoolkitX;
@@ -55,7 +55,7 @@ export default class ARControllerX {
     transMatToGLMat(transMat: Float64Array, glMat: Float64Array, scale?: number): Float64Array;
     arglCameraViewRHf(glMatrix: Float64Array, glRhMatrix?: Float64Array, scale?: number): Float64Array;
     getTransformationMatrix(): Float64Array;
-    getCameraMatrix(): Float64Array;
+    getCameraMatrix(): Float32Array;
     setLogLevel(mode: boolean): number;
     getLogLevel(): number;
     private converter;
