@@ -22,6 +22,7 @@ export default class ARControllerX {
     private listeners;
     private trackables;
     private transform_mat;
+    private _transMatPtr;
     private marker_transform_mat;
     private transformGL_RH;
     private videoWidth;
@@ -41,6 +42,7 @@ export default class ARControllerX {
     static init(image: ImageObj, cameraUrl: string, width: number, height: number): Promise<ARControllerX>;
     private _initialize;
     start(): Promise<void>;
+    dispose(): void;
     process(image: ImageObj): Promise<void>;
     _processImage(image: ImageObj): void;
     private _prepareImage;

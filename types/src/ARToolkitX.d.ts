@@ -20,6 +20,7 @@ export default class ARToolkitX {
     _arwUpdateAR: () => number;
     _queryTrackableVisibility: (id: number) => Float64Array;
     _malloc: (numBytes: number) => number;
+    _free: (pointer: number) => void;
     _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float64Array;
     videoMalloc: {
         framepointer: number;
@@ -35,6 +36,8 @@ export default class ARToolkitX {
     };
     _arwCapture: () => number;
     setValue: (pointer: number, a: number, type: string) => void;
+    stopRunning: () => void;
+    shutdownAR: () => void;
     setLogLevel: (mode: boolean) => number;
     getLogLevel: () => number;
     constructor();

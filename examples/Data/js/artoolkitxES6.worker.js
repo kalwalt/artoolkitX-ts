@@ -37,7 +37,7 @@ function load(msg) {
 
       console.log('We are ready...');
       let cameraMatrix = arController.getCameraProjMatrix()
-      console.log('camera projection matrix: ', camPM);
+      console.log('camera projection matrix: ', cameraMatrix);
       // We send the camera matrix outside the worker
       postMessage({ type: 'loaded', proj: JSON.stringify(cameraMatrix) })
       // This line will pass imageData through the process() function... not ready yet...
@@ -45,9 +45,6 @@ function load(msg) {
       arController.addEventListener('getMarker', function(e){
         console.log(e);
       })
-      
-      
-
     })
   })
 
