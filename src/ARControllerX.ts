@@ -79,6 +79,17 @@ interface delegateMethods {
     HEAPU8: {
       buffer: Uint8Array
     };
+    videoMalloc: {
+      framepointer: number;
+      framesize: number;
+      videoLumaPointer: number;
+      lumaFramePointer: number;
+      newFrameBoolPtr: number;
+      fillFlagIntPtr: number;
+      timeSecPtr: number;
+      timeMilliSecPtr: number
+    };
+    setValue: (pointer: number, a: number, type: string) => void;
   }
   loadCameraParam: (cameraParam: string) => Promise<string>;
   arwStartRunningJS: (arCameraURL: string, width: number, height: number) => number;
@@ -97,10 +108,9 @@ interface delegateMethods {
     newFrameBoolPtr: number;
     fillFlagIntPtr: number;
     timeSecPtr: number;
-    timeMilliSecPtr: number;
-    camera: number;
-    transform: number
+    timeMilliSecPtr: number
   };
+  _arwQueryTrackableVisibilityAndTransformation: (id: number, pointer: number) => Float64Array;
   setValue: (pointer: number, a: number, type: string) => void;
   _arwCapture: () => number;
   stopRunning: () => void;
@@ -337,11 +347,11 @@ export default class ARControllerX {
     try {
       this._prepareImage(image)
       const success = this.artoolkitX._arwUpdateAR()
-
+      
       if (success >= 0) {
         this.trackables.forEach((trackable) => {
           var that = this;
-          const transformation = this.artoolkitX._queryTrackableVisibility(trackable.trackableId)
+          const transformation = this._queryTrackableVisibility(trackable.trackableId)
           if (transformation) {
             trackable.transformation = transformation
             trackable.arCameraViewRH = this.arglCameraViewRHf(transformation)
@@ -367,81 +377,102 @@ export default class ARControllerX {
   }
 
   /**
-     * Sets imageData and videoLuma as properties to ARControllerX object to be used for marker detection.
-     * Copies the video image and luma buffer into the HEAP to be available for the compiled C code for marker detection.
-     * Sets newFrame and fillFlag in the compiled C code to signal the marker detection that a new frame is available.
-     *
-     * @param {HTMLImageElement|HTMLVideoElement} [image] The image to prepare for marker detection
-     * @returns {boolean} true if successfull
-     * @private
-     */
-  private _prepareImage(image: any) {
-    if (!image) {
-      image = this.image
+  * Sets imageData and videoLuma as properties to ARControllerX object to be used for marker detection.
+  * Copies the video image and luma buffer into the HEAP to be available for the compiled C code for marker detection.
+  * Sets newFrame and fillFlag in the compiled C code to signal the marker detection that a new frame is available.
+  *
+  * @param {HTMLImageElement|HTMLVideoElement} [image] The image to prepare for marker detection
+  * @returns {boolean} true if successfull
+  * @private
+  */
+  private _prepareImage (sourceImage: ImageObj) {
+    if (!sourceImage) {
+    // default to preloaded image
+      sourceImage = this.image
     }
 
-    this.ctx.save()
+    // this is of type Uint8ClampedArray:
+    // The Uint8ClampedArray typed array represents an array of 8-bit unsigned
+    // integers clamped to 0-255
+    // @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray
+    let data: Uint8ClampedArray;
 
-    if ('orientation' in window && Math.abs(window.orientation) !== 90) {
-      // portrait
-      this.ctx.translate(this.canvas.width, 0)
-      this.ctx.rotate(Math.PI / 2)
-      this.ctx.drawImage(image, 0, 0, this.canvas.height, this.canvas.width) // draw video
-      this.orientation = ORIENTATION[0]
+    if (sourceImage.data) {
+      // directly use source image
+      data = sourceImage.data
     } else {
-      this.ctx.drawImage(image, 0, 0, this.canvas.width, this.canvas.height) // draw video
-      this.orientation = ORIENTATION[90]
+      this.ctx.save()
+      if ('orientation' in window && Math.abs(window.orientation) !== 90) {
+        // portrait
+        this.ctx.translate(this.canvas.width, 0)
+        this.ctx.rotate(Math.PI / 2)
+         //@ts-ignore
+         this.ctx.drawImage(sourceImage, 0, 0, this.canvas.height, this.canvas.width) // draw video
+        this.orientation = ORIENTATION[0]
+      } else {
+        //@ts-ignore
+        this.ctx.drawImage(sourceImage, 0, 0, this.canvas.width, this.canvas.height) // draw video
+      }
+
+      this.ctx.restore()
+
+      let imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
+      data = imageData.data
     }
-
-    this.ctx.restore()
-    const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
-    const data = imageData.data // this is of type Uint8ClampedArray: The Uint8ClampedArray typed array represents an array of 8-bit unsigned integers clamped to 0-255 (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray)
-    this.imageData = data
-
+    this.videoLuma = new Uint8ClampedArray(data.length / 4)
     // Here we have access to the unmodified video image. We now need to add the videoLuma chanel to be able to serve the underlying ARTK API
-    let q = 0
-    const videoLuma = new Uint8ClampedArray(data.length / 4)
-    // Create luma from video data assuming Pixelformat AR_PIXEL_FORMAT_RGBA (ARToolKitJS.cpp L: 43)
-    for (let p = 0; p < this.videoSize; p++) {
-      const r = data[q + 0]; const g = data[q + 1]; const b = data[q + 2]
-      videoLuma[p] = (r + r + r + b + g + g + g + g) >> 3 // https://stackoverflow.com/a/596241/5843642
-      q += 4
+    if (this.videoLuma) {
+      
+      let q = 0
+
+      // Create luma from video data assuming Pixelformat AR_PIXEL_FORMAT_RGBA
+      // see (ARToolKitJS.cpp L: 43)
+      for (let p = 0; p < this.videoSize; p++) {      
+        let r = data[q + 0], g = data[q + 1], b = data[q + 2];
+        // @see https://stackoverflow.com/a/596241/5843642    
+        this.videoLuma[p] = (r + r + r + b + g + g + g + g) >> 3
+        q += 4
+      }
     }
-    // Get access to the video allocation object
-    const videoMalloc = this.artoolkitX.videoMalloc
-    // Copy luma image
-    const videoFrameLumaBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer, videoMalloc.lumaFramePointer, videoMalloc.framesize / 4)
-    videoFrameLumaBytes.set(videoLuma)
-    this.videoLuma = videoLuma
 
-    // Copy image data into HEAP. HEAP was prepared during videoWeb.c::ar2VideoPushInitWeb()
-    const videoFrameBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer, videoMalloc.framepointer, videoMalloc.framesize)
-    videoFrameBytes.set(data)
-    this.framesize = videoMalloc.framesize
-
-    this.artoolkitX.setValue(videoMalloc.newFrameBoolPtr, 1, 'i8')
-    this.artoolkitX.setValue(videoMalloc.fillFlagIntPtr, 1, 'i32')
-
-    // Provide a timestamp to each frame because arvideo2.arUtilTimeSinceEpoch() seems not to perform well with Emscripten.
-    // It internally calls gettimeofday which should not be used with Emscripten according to this: https://github.com/urho3d/Urho3D/issues/916
-    // which says that emscripten_get_now() should be used. However, this seems to have issues too https://github.com/kripken/emscripten/issues/5893
-    // Basically because it relies on performance.now() and performance.now() is supposedly slower then Date.now() but offers greater accuracy.
-    // Or rather should offer but does not anymore because of Spectre (https://en.wikipedia.org/wiki/Spectre_(security_vulnerability))
-    // Bottom line as performance.now() is slower then Date.now() (https://jsperf.com/gettime-vs-now-0/7) and doesn't offer higher accuracy and we
-    // would be calling it for each video frame I decided to read the time per frame from JS and pass it in to the compiled C-Code using a pointer.
-    const time = Date.now()
-    const seconds = Math.floor(time / 1000)
-    const milliSeconds = time - seconds * 1000
-    this.artoolkitX.setValue(videoMalloc.timeSecPtr, seconds, 'i32')
-    this.artoolkitX.setValue(videoMalloc.timeMilliSecPtr, milliSeconds, 'i32')
-
-    const ret = this.artoolkitX._arwCapture()
-
-    /*if (this.debug) {
-      this.debugDraw()
-    }*/
-    return ret
+     // Get access to the video allocation object
+     //const videoMalloc = this.artoolkitX.videoMalloc
+     const params: delegateMethods['videoMalloc'] = this.artoolkitX.instance.videoMalloc;
+     
+     // Copy luma image
+     const videoFrameLumaBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer, params.lumaFramePointer, params.framesize / 4)
+     videoFrameLumaBytes.set(this.videoLuma)
+     //this.videoLuma = videoLuma
+ 
+     // Copy image data into HEAP. HEAP was prepared during videoWeb.c::ar2VideoPushInitWeb()
+     const videoFrameBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer, params.framepointer, params.framesize)
+     videoFrameBytes.set(data)
+     this.framesize = params.framesize
+ 
+     this.artoolkitX.instance.setValue(params.newFrameBoolPtr, 1, 'i8')
+     this.artoolkitX.instance.setValue(params.fillFlagIntPtr, 1, 'i32')
+ 
+     // Provide a timestamp to each frame because arvideo2.arUtilTimeSinceEpoch() seems not to perform well with Emscripten.
+     // It internally calls gettimeofday which should not be used with Emscripten according to this: https://github.com/urho3d/Urho3D/issues/916
+     // which says that emscripten_get_now() should be used. However, this seems to have issues too https://github.com/kripken/emscripten/issues/5893
+     // Basically because it relies on performance.now() and performance.now() is supposedly slower then Date.now() but offers greater accuracy.
+     // Or rather should offer but does not anymore because of Spectre (https://en.wikipedia.org/wiki/Spectre_(security_vulnerability))
+     // Bottom line as performance.now() is slower then Date.now() (https://jsperf.com/gettime-vs-now-0/7) and doesn't offer higher accuracy and we
+     // would be calling it for each video frame I decided to read the time per frame from JS and pass it in to the compiled C-Code using a pointer.
+     const time = Date.now()
+     const seconds = Math.floor(time / 1000)
+     const milliSeconds = time - seconds * 1000
+     this.artoolkitX.instance.setValue(params.timeSecPtr, seconds, 'i32')
+     this.artoolkitX.instance.setValue(params.timeMilliSecPtr, milliSeconds, 'i32')
+ 
+     const ret = this.artoolkitX._arwCapture()
+ 
+     /*if (this.debug) {
+       this.debugDraw()
+     }*/
+     return ret
   };
+
 
   /**
   * Returns the projection matrix computed from camera parameters for the ARControllerX.
@@ -498,7 +529,7 @@ export default class ARControllerX {
       }
       if (trackableObj.trackableType.includes('2d')) {
         this.has2DTrackable = true
-        trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.height)
+        trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType +  ';' + fileName + ';' + trackableObj.height)
         console.log('2d id: ', trackableId);    
       } else {
         trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.width)
@@ -514,7 +545,21 @@ export default class ARControllerX {
     }
     throw new Error('Failed to add Trackable: ' + trackableId)
   }
-
+  
+  // Internal wrapper to _arwQueryTrackableVisibilityAndTransformation to avoid ccall overhead
+  _queryTrackableVisibility (trackableId: number) {
+    const transformationMatrixElements = 16
+    const numBytes = transformationMatrixElements * Float64Array.BYTES_PER_ELEMENT
+    this._transMatPtr = this.artoolkitX._malloc(numBytes)
+    // Call compiled C-function directly using '_' notation
+    // https://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-direct-function-calls
+    const transformation = this.artoolkitX._arwQueryTrackableVisibilityAndTransformation(trackableId, this._transMatPtr)
+    const matrix = new Float64Array(this.artoolkitX.instance.HEAPU8.buffer, this._transMatPtr, transformationMatrixElements)
+    if (transformation) {
+      return matrix
+    }
+    return undefined
+  }
 
   // event handling
   //----------------------------------------------------------------------------

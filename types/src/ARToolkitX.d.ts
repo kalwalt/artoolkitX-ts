@@ -31,9 +31,8 @@ export default class ARToolkitX {
         fillFlagIntPtr: number;
         timeSecPtr: number;
         timeMilliSecPtr: number;
-        camera: number;
-        transform: number;
     };
+    _arwQueryTrackableVisibilityAndTransformation: (id: number, pointer: number) => Float64Array;
     _arwCapture: () => number;
     setValue: (pointer: number, a: number, type: string) => void;
     stopRunning: () => void;
