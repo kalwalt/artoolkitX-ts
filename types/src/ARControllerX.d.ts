@@ -60,6 +60,7 @@ export default class ARControllerX {
     private _prepareImage;
     getCameraProjMatrix(nearPlane?: number, farPlane?: number): Float32Array;
     addTrackable(trackableObj: ITrackableObj): Promise<number>;
+    _queryTrackableVisibility(trackableId: number): Float64Array;
     addEventListener(name: string, callback: object): void;
     removeEventListener(name: string, callback: object): void;
     dispatchEvent(event: {

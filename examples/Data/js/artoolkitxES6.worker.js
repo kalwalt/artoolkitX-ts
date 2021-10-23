@@ -22,10 +22,15 @@ var _projectionMatPtr;
 var _camera_count = 0;
 var _cameraParaFileURL;
 var videoWidth, videoHeight;
-var trackable = {
+/*var trackable = {
   trackableType: "2d",
   url: '../../../examples/Data/pinball.jpg',
   height: 1.0
+}*/
+
+var trackable = {
+  trackableType: "single_barcode",
+  id: 4
 }
 
 function load(msg) {
@@ -34,18 +39,19 @@ function load(msg) {
     console.log('arController is: ', arController);
     try {
 
-      arController.start().then(_ => {
+      arController.start().then(_ => {     
 
         console.log('We are ready...');
         let cameraMatrix = arController.getCameraProjMatrix()
         console.log('camera projection matrix: ', cameraMatrix);
         // We send the camera matrix outside the worker
         postMessage({ type: 'loaded', proj: JSON.stringify(cameraMatrix) })
-        // This line will pass imageData through the process() function... not ready yet...
-        // ar = arController;
         if (trackable) {
           var trackableId = arController.addTrackable(trackable);
         }
+        setInterval(function(){
+        ar = arController;
+        }, 1000)
         arController.addEventListener('getMarker', function (e) {
           console.log(e);
         })
