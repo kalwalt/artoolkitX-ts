@@ -50,6 +50,7 @@ export default class ARControllerX {
     private _marker_count;
     private has2DTrackable;
     private _bwpointer;
+    private threshold;
     constructor(image: object, cameraPara: string, confWidth: number, confHeight: number);
     static init(image: ImageObj, cameraUrl: string, width: number, height: number): Promise<ARControllerX>;
     private _initialize;
@@ -74,6 +75,7 @@ export default class ARControllerX {
     getCameraMatrix(): Float32Array;
     setLogLevel(mode: boolean): number;
     getLogLevel(): number;
+    setThreshold(threshold: number): void;
     _loadTrackable(url: string): Promise<unknown>;
     setPatternDetectionMode(mode: number): number;
     private _setPatternDetectionMode;

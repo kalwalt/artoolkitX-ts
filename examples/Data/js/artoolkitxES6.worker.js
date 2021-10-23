@@ -30,16 +30,19 @@ var videoWidth, videoHeight;
 
 var trackable = {
   trackableType: "single_barcode",
-  id: 4
+  barcodeId: 4
 }
 
 function load(msg) {
 
   ARToolkitX.ARControllerX.init(0, msg.camera_para, msg.pw, msg.ph).then((arController) => {
     console.log('arController is: ', arController);
+    arController.addEventListener('getMarker', (trackableInfo) => {
+      console.log("TrackableID: " + trackableInfo.data.trackableId);
+    });
     try {
 
-      arController.start().then(_ => {     
+      arController.start().then(_ => {
 
         console.log('We are ready...');
         let cameraMatrix = arController.getCameraProjMatrix()
@@ -49,12 +52,9 @@ function load(msg) {
         if (trackable) {
           var trackableId = arController.addTrackable(trackable);
         }
-        setInterval(function(){
-        ar = arController;
+        setInterval(function () {
+          ar = arController;
         }, 1000)
-        arController.addEventListener('getMarker', function (e) {
-          console.log(e);
-        })
       })
     } catch (e) {
       console.error(e)

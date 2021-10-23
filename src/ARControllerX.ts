@@ -118,7 +118,8 @@ interface delegateMethods {
   addTrackable: (config: string) => number;
   setTrackerOptionInt: (value: number, mode: number) => number;
   TrackableOptions: {
-    ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: { value: number}
+    ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: { value: number};
+    ARW_TRACKER_OPTION_SQUARE_THRESHOLD:  { value: number}
   }
   AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX: number;
   AR_MATRIX_CODE_DETECTION: number;
@@ -170,6 +171,7 @@ export default class ARControllerX {
   private _marker_count: number;
   private has2DTrackable: boolean;
   private _bwpointer: number;
+  private threshold: number;
 
   /**
    * The ARControllerX constructor. It has 4 params (see above).
@@ -250,6 +252,7 @@ export default class ARControllerX {
     this.defaultMarkerWidth = 80
     this.default2dHeight = 0.001
     this.has2DTrackable
+    this.threshold
   }
 
   static async init(image: ImageObj, cameraUrl: string, width: number, height: number) {
@@ -276,7 +279,6 @@ export default class ARControllerX {
       console.debug('Version: ' + this.artoolkitX.getARToolKitVersion())
       // Only try to load the camera parameter file if an URL was provided
       let arCameraURL: string = ''
-      console.log(this.cameraParaFileURL);
 
       if (this.cameraParaFileURL !== '') {
         try {
@@ -514,11 +516,13 @@ export default class ARControllerX {
     if (trackableObj.trackableType.includes('single') || trackableObj.trackableType.includes('2d')) {
       if (trackableObj.barcodeId !== undefined) {
         fileName = trackableObj.barcodeId
+        console.log('filename inside barcodeId query', fileName);       
         if (!this._patternDetection.barcode) {
           this._patternDetection.barcode = true
         }
       } else {
         try {
+          console.log('inside try')
           fileName = await this._loadTrackable(trackableObj.url)
         } catch (error) {
           throw new Error('Error to load trackable: ' + error)
@@ -529,7 +533,7 @@ export default class ARControllerX {
       }
       if (trackableObj.trackableType.includes('2d')) {
         this.has2DTrackable = true
-        trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType +  ';' + fileName + ';' + trackableObj.height)
+        trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.height)
         console.log('2d id: ', trackableId);    
       } else {
         trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.width)
@@ -726,6 +730,33 @@ export default class ARControllerX {
    */
   getLogLevel() {
     return this.artoolkitX.getLogLevel();
+  };
+
+  /**
+   * Set the labeling threshhold.
+   * This function forces sets the threshold value.
+   * The default value is AR_DEFAULT_LABELING_THRESH which is 100.
+   *
+   * The current threshold mode is not affected by this call.
+   * Typically, this function is used when labeling threshold mode
+   * is AR_LABELING_THRESH_MODE_MANUAL.
+   *
+   * The threshold value is not relevant if threshold mode is
+   * AR_LABELING_THRESH_MODE_AUTO_ADAPTIVE.
+   *
+   * Background: The labeling threshold is the value which
+   * the AR library uses to differentiate between black and white
+   * portions of an ARToolKit marker. Since the actual brightness,
+   * contrast, and gamma of incoming images can vary signficantly
+   * between different cameras and lighting conditions, this
+   * value typically needs to be adjusted dynamically to a
+   * suitable midpoint between the observed values for black
+   * and white portions of the markers in the image.
+   * @param {number} threshold An integer in the range [0,255] (inclusive).
+   */
+  setThreshold (threshold: number) {
+    this.threshold = threshold;
+    this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_THRESHOLD.value, threshold)
   };
 
   public async _loadTrackable(url: string) {
