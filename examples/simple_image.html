@@ -1,0 +1,64 @@
+<html>
+<body>
+
+
+<img id="v1" src="./Data/armchair.jpg"></img>
+
+    <script  src="../dist/ARToolkitX.js"></script>
+    <script>
+
+var ar, interval;
+var cameraParam = '';
+const config = {
+    cameraParam: cameraParam,
+    width: 640,
+    height: 480
+};
+
+var trackable = {
+    trackableType: "single_barcode",
+    barcodeId: 36
+}
+ARToolkitX.ARControllerX.init(0, config.cameraParam, config.width, config.height).then((arController) => {
+    console.log(arController);
+
+    arController.addEventListener('getMarker', (trackableInfo) => {
+        console.log("TrackableID: " + trackableInfo.data.trackableId);
+        console.log(trackableInfo.data.transformation);
+    }); 
+
+try {
+    // we set the Log level and so also a debug canvas
+    //arController.setLogLevel(0);
+    // we st a different Threshold
+    arController.setThreshold(200);
+    arController.start().then( () => {
+        console.log("start done");
+        var trackableId = arController.addTrackable(trackable);
+        interval = setInterval(function() {
+            arController.process(v1);
+        }, 13);
+        ar = arController;
+        
+    });
+}
+catch (e) {
+    console.log(e);
+}
+})
+
+
+
+window.close = function() {
+    if(ar) {
+        ar.dispose();
+        clearInterval(interval);
+    }
+    else {
+        console.error("Trying to close before opened");
+    }
+}
+</script>
+<button onclick="window.close()">Close Video</button>
+</body>
+</html>
