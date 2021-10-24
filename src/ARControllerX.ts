@@ -119,7 +119,8 @@ interface delegateMethods {
   getTrackerOptionInt: (value: number) => number;
   TrackableOptions: {
     ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: { value: number};
-    ARW_TRACKER_OPTION_SQUARE_THRESHOLD:  { value: number}
+    ARW_TRACKER_OPTION_SQUARE_THRESHOLD:  { value: number};
+    ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE: { value: number};
   }
   AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX: number;
   AR_MATRIX_CODE_DETECTION: number;
@@ -712,6 +713,30 @@ export default class ARControllerX {
    */
   public getLogLevel() {
     return this.artoolkitX.getLogLevel();
+  };
+
+  /**
+   * Set the labeling threshold mode (auto/manual).
+   *
+   * @param {number}     mode An integer specifying the mode. One of:
+   * artoolkitX.LabelingThresholdMode.AR_LABELING_THRESH_MODE_MANUAL,
+   * artoolkitX.LabelingThresholdMode.AR_LABELING_THRESH_MODE_AUTO_MEDIAN,
+   * artoolkitX.LabelingThresholdMode.AR_LABELING_THRESH_MODE_AUTO_OTSU,
+   * artoolkitX.LabelingThresholdMode.AR_LABELING_THRESH_MODE_AUTO_ADAPTIVE,
+   * artoolkitX.LabelingThresholdMode.AR_LABELING_THRESH_MODE_AUTO_BRACKETING
+   * {@see https://github.com/artoolkitx/artoolkitx/Source/artoolkitx.js/ARX_bindings.cpp} -> LabelingThresholdMode
+   */
+  public setThresholdMode (mode: number) {
+    this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE.value, mode)
+  };
+          
+  /**
+   * Gets the current threshold mode used for image binarization.
+   * @return  {number}        The current threshold mode
+   * @see     getVideoThresholdMode()
+   */
+  public getThresholdMode () {
+    return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE.value)
   };
 
   /**
