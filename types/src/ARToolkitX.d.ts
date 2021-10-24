@@ -48,6 +48,9 @@ export default class ARToolkitX {
         ARW_TRACKER_OPTION_SQUARE_THRESHOLD: {
             value: number;
         };
+        ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE: {
+            value: number;
+        };
     };
     AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX: number;
     AR_MATRIX_CODE_DETECTION: number;

@@ -74,6 +74,8 @@ export default class ARControllerX {
     getCameraMatrix(): Float32Array;
     setLogLevel(mode: boolean): number;
     getLogLevel(): number;
+    setThresholdMode(mode: number): void;
+    getThresholdMode(): number;
     setThreshold(threshold: number): void;
     getThreshold(): number;
     setPatternDetectionMode(mode: number): number;
