@@ -141,7 +141,6 @@ const ORIENTATION = {
 
 export default class ARControllerX {
   // private declarations
-  private options = {} as Options;
   private id: number;
   private width: number;
   private height: number;
@@ -169,8 +168,6 @@ export default class ARControllerX {
   private videoLuma: Uint8ClampedArray;
   private camera_mat: Float32Array;
   private videoLumaPointer: number;
-  private canvas: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
   private defaultMarkerWidth: number;
   private default2dHeight: number;
   private _patternDetection: IPatternDetectionObj;
@@ -200,13 +197,11 @@ export default class ARControllerX {
     this.height = confHeight
 
     // holds an image in case the instance was initialized with an image
-    this.image
+    this.image = image
 
     // default camera orientation
-    this.orientation = this.options.orientation
+    this.orientation
 
-    // this is a replacement for ARCameraParam
-    //this.cameraParam = cameraParam
     this.cameraParaFileURL = cameraPara
     this.cameraId = -1
     this.cameraLoaded = false
@@ -239,21 +234,6 @@ export default class ARControllerX {
     this.videoLuma = null
     this.camera_mat = null
     this.videoLumaPointer = null
-
-    if (this.options.canvas) {
-      // in case you use Node.js, create a canvas with node-canvas
-      this.canvas = this.options.canvas
-    } else if (typeof document !== 'undefined') {
-      // try creating a canvas from document
-      this.canvas = document.createElement('canvas') as HTMLCanvasElement
-    }
-    if (this.canvas) {
-      this.canvas.width = confWidth
-      this.canvas.height = confHeight
-      this.ctx = this.canvas.getContext('2d')
-    } else {
-      console.warn('No canvas available')
-    }
 
     this._bwpointer = null
     this.defaultMarkerWidth = 80
@@ -406,25 +386,8 @@ export default class ARControllerX {
     if (sourceImage.data) {
       // directly use source image
       data = sourceImage.data
-    } else {
-      this.ctx.save()
-      if ('orientation' in window && Math.abs(window.orientation) !== 90) {
-        // portrait
-        this.ctx.translate(this.canvas.width, 0)
-        this.ctx.rotate(Math.PI / 2)
-         //@ts-ignore
-         this.ctx.drawImage(sourceImage, 0, 0, this.canvas.height, this.canvas.width) // draw video
-        this.orientation = ORIENTATION[0]
-      } else {
-        //@ts-ignore
-        this.ctx.drawImage(sourceImage, 0, 0, this.canvas.width, this.canvas.height) // draw video
-      }
-
-      this.ctx.restore()
-
-      let imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
-      data = imageData.data
     }
+
     this.videoLuma = new Uint8ClampedArray(data.length / 4)
     // Here we have access to the unmodified video image. We now need to add the videoLuma chanel to be able to serve the underlying ARTK API
     if (this.videoLuma) {

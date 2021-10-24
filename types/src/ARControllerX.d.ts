@@ -13,7 +13,6 @@ interface ITrackableObj {
     url: string;
 }
 export default class ARControllerX {
-    private options;
     private id;
     private width;
     private height;
@@ -41,8 +40,6 @@ export default class ARControllerX {
     private videoLuma;
     private camera_mat;
     private videoLumaPointer;
-    private canvas;
-    private ctx;
     private defaultMarkerWidth;
     private default2dHeight;
     private _patternDetection;
