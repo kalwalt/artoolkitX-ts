@@ -96,7 +96,6 @@ interface delegateMethods {
   pushVideoInit: (n: number, width: number, height: number, pixelformat: string, a: number, b: number) => number;
   isInitialized: () => boolean;
   _arwUpdateAR: () => number;
-  _queryTrackableVisibility: (id: number) => Float64Array;
   _malloc: (numBytes: number) => number;
   _free: (pointer: number) => void;
   _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float64Array;
@@ -349,11 +348,14 @@ export default class ARControllerX {
     try {
       this._prepareImage(image)
       const success = this.artoolkitX._arwUpdateAR()
-      
+      //console.log('success: ', success);    
       if (success >= 0) {
         this.trackables.forEach((trackable) => {
+          //console.log(trackable);      
           var that = this;
           const transformation = this._queryTrackableVisibility(trackable.trackableId)
+          //console.log(transformation);
+          //console.log(this);
           if (transformation) {
             trackable.transformation = transformation
             trackable.arCameraViewRH = this.arglCameraViewRHf(transformation)

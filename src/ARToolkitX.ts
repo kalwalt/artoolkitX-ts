@@ -62,7 +62,6 @@ export default class ARToolkitX {
   public arwStartRunningJS: (arCameraURL: string, width: number, height: number) => number;
   public pushVideoInit: (n: number, width: number, height: number, pixelformat: string, a: number, b: number) => number;
   public _arwUpdateAR: () => number;
-  public _queryTrackableVisibility: (id: number) => Float64Array;
   public _malloc: (numBytes: number) => number;
   public _free: (pointer: number) => void;
   public _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float64Array;
@@ -204,7 +203,6 @@ export default class ARToolkitX {
       '_arwLoadOpticalParams',
       '_arwQueryTrackableVisibilityAndTransformation',
       '_arwUpdateAR',
-      '_queryTrackableVisibility',
 
       '_free',
       '_malloc'

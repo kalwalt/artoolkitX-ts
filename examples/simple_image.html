@@ -28,9 +28,9 @@ ARToolkitX.ARControllerX.init(0, config.cameraParam, config.width, config.height
     }); 
 
 try {
-    // we set the Log level and so also a debug canvas
-    //arController.setLogLevel(0);
-    // we st a different Threshold
+    // we set the Log level
+    arController.setLogLevel(0);
+    // we set a different Threshold
     arController.setThreshold(200);
     arController.start().then( () => {
         console.log("start done");
