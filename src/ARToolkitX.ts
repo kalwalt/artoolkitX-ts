@@ -86,10 +86,16 @@ export default class ARToolkitX {
   public addTrackable: (config: string) => number;
   public setTrackerOptionInt: (value: number, mode: number) => number;
   public getTrackerOptionInt: (value: number) => number;
+  public setTrackerOptionFloat: (value: number, mode: number) => void;
+  public getTrackerOptionFloat: (value: number) => number;
   public TrackableOptions: {
     ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: { value: number};
     ARW_TRACKER_OPTION_SQUARE_THRESHOLD:  { value: number};
     ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE: { value: number};
+    ARW_TRACKER_OPTION_SQUARE_MATRIX_CODE_TYPE: { value: number};
+    ARW_TRACKER_OPTION_SQUARE_LABELING_MODE: { value: number};
+    ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE: { value: number};
+    ARW_TRACKER_OPTION_SQUARE_IMAGE_PROC_MODE:  { value: number};
   }
   public AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX: number;
   public AR_MATRIX_CODE_DETECTION: number;

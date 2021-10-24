@@ -115,12 +115,18 @@ interface delegateMethods {
   stopRunning: () => void;
   shutdownAR: () => void;
   addTrackable: (config: string) => number;
-  setTrackerOptionInt: (value: number, mode: number) => number;
+  setTrackerOptionInt: (value: number, mode: number) => void;
   getTrackerOptionInt: (value: number) => number;
+  setTrackerOptionFloat: (value: number, mode: number) => void;
+  getTrackerOptionFloat: (value: number) => number;
   TrackableOptions: {
     ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: { value: number};
     ARW_TRACKER_OPTION_SQUARE_THRESHOLD:  { value: number};
     ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE: { value: number};
+    ARW_TRACKER_OPTION_SQUARE_MATRIX_CODE_TYPE: { value: number};
+    ARW_TRACKER_OPTION_SQUARE_LABELING_MODE: { value: number};
+    ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE: { value: number};
+    ARW_TRACKER_OPTION_SQUARE_IMAGE_PROC_MODE:  { value: number};
   }
   AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX: number;
   AR_MATRIX_CODE_DETECTION: number;
@@ -810,6 +816,133 @@ export default class ARControllerX {
     this.userSetPatternDetection = true
     return this._setPatternDetectionMode(mode)
   };
+
+  /**
+   * Returns the current pattern detection mode.
+   * @return {number} The current pattern detection mode. {@see https://github.com/artoolkitx/artoolkitx/Source/artoolkitx.js/ARX_bindings.cpp} -> arPatternDetectionMode
+   * Which is represented in JS as artoolkitXjs.[Mode]
+   */
+  public getPatternDetectionMode () {
+    return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE.value)
+  };
+
+  /**
+    Set the size and ECC algorithm to be used for matrix code (2D barcode) marker detection.
+
+    When matrix-code (2D barcode) marker detection is enabled (see arSetPatternDetectionMode)
+    then the size of the barcode pattern and the type of error checking and correction (ECC)
+    with which the markers were produced can be set via this function.
+
+    This setting is global to a given ARHandle; It is not possible to have two different matrix
+    code types in use at once.
+
+    @param      type The type of matrix code (2D barcode) in use. Options include:
+      artoolkitX.ARMatrixCodeType.AR_MATRIX_CODE_3x3
+      artoolkitX.ARMatrixCodeType.AR_MATRIX_CODE_3x3_HAMMING63
+      artoolkitX.ARMatrixCodeType.AR_MATRIX_CODE_3x3_PARITY65
+      artoolkitX.ARMatrixCodeType.AR_MATRIX_CODE_4x4
+      artoolkitX.ARMatrixCodeType.AR_MATRIX_CODE_4x4_BCH_13_9_3
+      artoolkitX.ARMatrixCodeType.AR_MATRIX_CODE_4x4_BCH_13_5_5
+      The default mode is artoolkitXjs.ARMatrixCodeType.AR_MATRIX_CODE_3x3.
+    {@see https://github.com/artoolkitx/artoolkitx/Source/artoolkitx.js/ARX_bindings.cpp} -> ARMatrixCodeType
+   */
+  public setMatrixCodeType (type: number) {
+    this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_MATRIX_CODE_TYPE.value, type)
+  };
+          
+  /**
+   * Returns the current matrix code (2D barcode) marker detection type.
+   *       
+   * @return {number} The current matrix code type. {@link setMatrixCodeType}
+   */
+  public getMatrixCodeType () {
+    return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_MATRIX_CODE_TYPE.value)
+  };
+
+  /**
+    Select between detection of black markers and white markers.
+
+    ARToolKit's labelling algorithm can work with both black-bordered
+    markers on a white background (AR_LABELING_BLACK_REGION) or
+    white-bordered markers on a black background (AR_LABELING_WHITE_REGION).
+    This function allows you to specify the type of markers to look for.
+    Note that this does not affect the pattern-detection algorith
+    which works on the interior of the marker.
+
+    @param {number}      mode
+    Options for this field are:
+    artoolkitX.AR_LABELING_WHITE_REGION
+    artoolkitX.AR_LABELING_BLACK_REGION
+    The default mode is AR_LABELING_BLACK_REGION.
+   */
+  public setLabelingMode (mode: number) {
+    this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_LABELING_MODE.value, mode)
+  };
+          
+  /**
+   * Enquire whether detection is looking for black markers or white markers.
+   * See {@link #setLabelingMode}
+   *     
+   * @result {number} The current labeling mode see {@link setLabelingMode}.
+   */
+  public getLabelingMode () {
+    return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_LABELING_MODE.value)
+  };
+
+  /**
+   * Set the width/height of the marker pattern space, as a proportion of marker width/height.
+   *
+   * @param {number}     pattRatio The the width/height of the marker pattern space, as a proportion of marker
+   * width/height. To set the default, pass artoolkitX.AR_PATT_RATIO.
+   */
+  public setPattRatio (pattRatio: number) {
+    this.artoolkitX.setTrackerOptionFloat(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE.value, pattRatio)
+  };
+          
+  /**
+   * Returns the current ratio of the marker pattern to the total marker size.
+   *     
+   *  @return {number} The current pattern ratio.
+   */
+  public getPattRatio () {
+    return this.artoolkitX.getTrackerOptionFloat(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE.value)
+  };
+
+  /**
+    Set the image processing mode.
+
+    When the image processing mode is AR_IMAGE_PROC_FRAME_IMAGE,
+    artoolkitX processes all pixels in each incoming image
+    to locate markers. When the mode is AR_IMAGE_PROC_FIELD_IMAGE,
+    artoolkitX processes pixels in only every second pixel row and
+    column. This is useful both for handling images from interlaced
+    video sources (where alternate lines are assembled from alternate
+    fields and thus have one field time-difference, resulting in a
+    "comb" effect) such as Digital Video cameras.
+    The effective reduction by 75% in the pixels processed also
+    has utility in accelerating tracking by effectively reducing
+    the image size to one quarter size, at the cost of pose accuraccy.
+
+    @param {number} mode
+      Options for this field are:
+      artoolkitX.AR_IMAGE_PROC_FRAME_IMAGE
+      artoolkitX.AR_IMAGE_PROC_FIELD_IMAGE
+      The default mode is artoolkitX.AR_IMAGE_PROC_FRAME_IMAGE.
+   */
+  public setImageProcMode (mode: number) {
+    this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_IMAGE_PROC_MODE.value, mode)
+  };
+          
+  /**
+   * Get the image processing mode.
+   * See {@link #setImageProcMode} for a complete description.
+   *
+   * @return {number} The current image processing mode.
+   */
+  public getImageProcMode () {
+    return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_IMAGE_PROC_MODE.value)
+  };
+                      
 
   // private accessors
   // ----------------------------------------------------------------------------

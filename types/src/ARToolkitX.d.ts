@@ -41,6 +41,8 @@ export default class ARToolkitX {
     addTrackable: (config: string) => number;
     setTrackerOptionInt: (value: number, mode: number) => number;
     getTrackerOptionInt: (value: number) => number;
+    setTrackerOptionFloat: (value: number, mode: number) => void;
+    getTrackerOptionFloat: (value: number) => number;
     TrackableOptions: {
         ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: {
             value: number;
@@ -49,6 +51,18 @@ export default class ARToolkitX {
             value: number;
         };
         ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE: {
+            value: number;
+        };
+        ARW_TRACKER_OPTION_SQUARE_MATRIX_CODE_TYPE: {
+            value: number;
+        };
+        ARW_TRACKER_OPTION_SQUARE_LABELING_MODE: {
+            value: number;
+        };
+        ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE: {
+            value: number;
+        };
+        ARW_TRACKER_OPTION_SQUARE_IMAGE_PROC_MODE: {
             value: number;
         };
     };
