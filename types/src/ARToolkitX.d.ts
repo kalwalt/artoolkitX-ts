@@ -18,7 +18,6 @@ export default class ARToolkitX {
     arwStartRunningJS: (arCameraURL: string, width: number, height: number) => number;
     pushVideoInit: (n: number, width: number, height: number, pixelformat: string, a: number, b: number) => number;
     _arwUpdateAR: () => number;
-    _queryTrackableVisibility: (id: number) => Float64Array;
     _malloc: (numBytes: number) => number;
     _free: (pointer: number) => void;
     _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float64Array;
