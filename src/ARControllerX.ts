@@ -360,7 +360,7 @@ export default class ARControllerX {
             trackable.transformation = transformation
             trackable.arCameraViewRH = this.arglCameraViewRHf(transformation)
             trackable.visible = true
-            trackable.scale = this.canvas.height / this.canvas.width
+            trackable.scale = this.height / this.width
             try {
               this.dispatchEvent({
                 name: 'getMarker',
