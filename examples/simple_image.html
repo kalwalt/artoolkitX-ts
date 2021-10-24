@@ -1,64 +1,82 @@
 <html>
+
 <body>
 
 
-<img id="v1" src="./Data/armchair.jpg"></img>
+    <img id="v1" src="./Data/armchair.jpg"></img>
 
-    <script  src="../dist/ARToolkitX.js"></script>
+    <script src="../dist/ARToolkitX.js"></script>
     <script>
 
-var ar, interval;
-var cameraParam = '';
-const config = {
-    cameraParam: cameraParam,
-    width: 640,
-    height: 480
-};
+        var ar, interval;
+        var cameraParam = '';
+        const config = {
+            cameraParam: cameraParam,
+            width: 640,
+            height: 480
+        };
 
-var trackable = {
-    trackableType: "single_barcode",
-    barcodeId: 36
-}
-ARToolkitX.ARControllerX.init(0, config.cameraParam, config.width, config.height).then((arController) => {
-    console.log(arController);
+        var canvas_process = document.createElement("canvas");
+        canvas_process.id = "cp"
 
-    arController.addEventListener('getMarker', (trackableInfo) => {
-        console.log("TrackableID: " + trackableInfo.data.trackableId);
-        console.log(trackableInfo.data.transformation);
-    }); 
+        var ctx = canvas_process.getContext('2d')
+        let imageData;
 
-try {
-    // we set the Log level
-    arController.setLogLevel(0);
-    // we set a different Threshold
-    arController.setThreshold(200);
-    arController.start().then( () => {
-        console.log("start done");
-        var trackableId = arController.addTrackable(trackable);
-        interval = setInterval(function() {
-            arController.process(v1);
-        }, 13);
-        ar = arController;
-        
-    });
-}
-catch (e) {
-    console.log(e);
-}
-})
+        var trackable = {
+            trackableType: "single_barcode",
+            barcodeId: 36
+        }
+        ARToolkitX.ARControllerX.init(0, config.cameraParam, config.width, config.height).then((arController) => {
+            console.log(arController);
 
+            arController.addEventListener('getMarker', (trackableInfo) => {
+                console.log("TrackableID: " + trackableInfo.data.trackableId);
+                console.log(trackableInfo.data.transformation);
+            });
 
+            try {
+                // we set the Log level
+                arController.setLogLevel(0);
+                // we set a different Threshold
+                arController.setThreshold(200);
+                arController.start().then(() => {
+                    console.log("start done");
+                    var trackableId = arController.addTrackable(trackable);
+                    interval = setInterval(function () {
+                        imageData = getImageData(v1, v1.width, v1.height)
+                        arController.process(imageData);
+                    }, 13);
+                    ar = arController;
 
-window.close = function() {
-    if(ar) {
-        ar.dispose();
-        clearInterval(interval);
-    }
-    else {
-        console.error("Trying to close before opened");
-    }
-}
-</script>
-<button onclick="window.close()">Close Video</button>
+                });
+            }
+            catch (e) {
+                console.log(e);
+            }
+        })
+
+        var getImageData = function (image, width, height) {
+            //ctx.save()
+
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(image, 0, 0, width, height)
+            //ctx.restore()
+            const imageData = ctx.getImageData(0, 0, width, height)
+            return imageData
+        }
+
+        window.close = function () {
+            if (ar) {
+                ar.dispose();
+                clearInterval(interval);
+            }
+            else {
+                console.error("Trying to close before opened");
+            }
+        }
+    </script>
+    <button onclick="window.close()">Close Video</button>
 </body>
+
 </html>
