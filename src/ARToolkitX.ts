@@ -34,7 +34,6 @@
  *
  */
 import ModuleLoader from './ModuleLoader'
-import Utils from './Utils'
 
 declare global {
   namespace NodeJS {

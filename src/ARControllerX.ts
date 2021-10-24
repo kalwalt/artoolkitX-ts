@@ -34,7 +34,7 @@
  *
  */
 import ARToolkitX from './ARToolkitX'
-import Utils from './Utils'
+import Utils from './ARXUtils'
  
 interface Options {
   canvas: null,
