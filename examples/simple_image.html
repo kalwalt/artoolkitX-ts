@@ -19,6 +19,9 @@
         var canvas_process = document.createElement("canvas");
         canvas_process.id = "cp"
 
+        canvas_process.width = v1.width
+        canvas_process.height = v1.height
+
         var ctx = canvas_process.getContext('2d')
         let imageData;
 
@@ -26,7 +29,7 @@
             trackableType: "single_barcode",
             barcodeId: 36
         }
-        ARToolkitX.ARControllerX.init(0, config.cameraParam, config.width, config.height).then((arController) => {
+        ARToolkitX.ARControllerX.init(0, config.cameraParam, v1.width, v1.height).then((arController) => {
             console.log(arController);
 
             arController.addEventListener('getMarker', (trackableInfo) => {
