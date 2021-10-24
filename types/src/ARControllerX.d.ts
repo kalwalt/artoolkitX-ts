@@ -75,10 +75,11 @@ export default class ARControllerX {
     setLogLevel(mode: boolean): number;
     getLogLevel(): number;
     setThreshold(threshold: number): void;
+    getThreshold(): number;
     setPatternDetectionMode(mode: number): number;
-    private _setPatternDetectionMode;
-    _updateDetectionMode(): void;
     private converter;
+    private _updateDetectionMode;
+    private _setPatternDetectionMode;
     private _loadTrackable;
     private _queryTrackableVisibility;
 }
