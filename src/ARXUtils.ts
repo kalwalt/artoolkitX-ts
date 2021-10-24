@@ -35,7 +35,7 @@
  */
 import axios from 'axios'
 
-export default class Utils {
+export default class ARXUtils {
   static async fetchRemoteData (url: string) {
     try {
       const response: any = await axios.get(url, { responseType: 'arraybuffer' })
