@@ -336,7 +336,6 @@ export default class ARControllerX {
       const success = this.artoolkitX._arwUpdateAR()
       if (success >= 0) {
         this.trackables.forEach((trackable) => {      
-          var that = this;
           const transformation = this._queryTrackableVisibility(trackable.trackableId)
           if (transformation) {
             trackable.transformation = transformation
@@ -375,7 +374,7 @@ export default class ARControllerX {
     if (!sourceImage) {
     // default to preloaded image
       sourceImage = this.image
-    }
+    }  
 
     // this is of type Uint8ClampedArray:
     // The Uint8ClampedArray typed array represents an array of 8-bit unsigned
