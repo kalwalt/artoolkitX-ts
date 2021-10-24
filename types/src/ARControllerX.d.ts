@@ -61,7 +61,6 @@ export default class ARControllerX {
     private _prepareImage;
     getCameraProjMatrix(nearPlane?: number, farPlane?: number): Float32Array;
     addTrackable(trackableObj: ITrackableObj): Promise<number>;
-    _queryTrackableVisibility(trackableId: number): Float64Array;
     addEventListener(name: string, callback: object): void;
     removeEventListener(name: string, callback: object): void;
     dispatchEvent(event: {
@@ -76,10 +75,11 @@ export default class ARControllerX {
     setLogLevel(mode: boolean): number;
     getLogLevel(): number;
     setThreshold(threshold: number): void;
-    _loadTrackable(url: string): Promise<unknown>;
     setPatternDetectionMode(mode: number): number;
     private _setPatternDetectionMode;
     _updateDetectionMode(): void;
     private converter;
+    private _loadTrackable;
+    private _queryTrackableVisibility;
 }
 export {};

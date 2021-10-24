@@ -323,10 +323,8 @@ export default class ARControllerX {
   };
 
   /**
-   * This is one of the most important method inside ARControllerNFT. It detect the marker
-   * and dispatch internally with the getNFTMarker event listener the NFTMarkerInfo
-   * struct object of the tracked NFT Markers.
-   * @param {image} image or image data
+   * This is one of the most important method inside ARControllerX.
+   * @param {image} image image data
    * @return {void}
    */
   public async process(image: ImageObj) {
@@ -348,14 +346,10 @@ export default class ARControllerX {
     try {
       this._prepareImage(image)
       const success = this.artoolkitX._arwUpdateAR()
-      //console.log('success: ', success);    
       if (success >= 0) {
-        this.trackables.forEach((trackable) => {
-          //console.log(trackable);      
+        this.trackables.forEach((trackable) => {      
           var that = this;
           const transformation = this._queryTrackableVisibility(trackable.trackableId)
-          //console.log(transformation);
-          //console.log(this);
           if (transformation) {
             trackable.transformation = transformation
             trackable.arCameraViewRH = this.arglCameraViewRHf(transformation)
@@ -550,21 +544,6 @@ export default class ARControllerX {
       return trackableId
     }
     throw new Error('Failed to add Trackable: ' + trackableId)
-  }
-  
-  // Internal wrapper to _arwQueryTrackableVisibilityAndTransformation to avoid ccall overhead
-  _queryTrackableVisibility (trackableId: number) {
-    const transformationMatrixElements = 16
-    const numBytes = transformationMatrixElements * Float64Array.BYTES_PER_ELEMENT
-    this._transMatPtr = this.artoolkitX._malloc(numBytes)
-    // Call compiled C-function directly using '_' notation
-    // https://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-direct-function-calls
-    const transformation = this.artoolkitX._arwQueryTrackableVisibilityAndTransformation(trackableId, this._transMatPtr)
-    const matrix = new Float64Array(this.artoolkitX.instance.HEAPU8.buffer, this._transMatPtr, transformationMatrixElements)
-    if (transformation) {
-      return matrix
-    }
-    return undefined
   }
 
   // event handling
@@ -761,19 +740,6 @@ export default class ARControllerX {
     this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_THRESHOLD.value, threshold)
   };
 
-  public async _loadTrackable(url: string) {
-    var filename = '/trackable_' + this._marker_count++
-    console.log(filename);
-    
-    try {
-      await Utils.fetchRemoteData(url)
-      return filename
-    } catch (e) {
-      console.log(e)
-      return e
-    }
-  }
-
   /**
        Set the pattern detection mode
 
@@ -833,5 +799,34 @@ export default class ARControllerX {
   private converter(): any {
     return this;
   }
+
+  private async _loadTrackable(url: string) {
+    var filename = '/trackable_' + this._marker_count++
+    console.log(filename);
+    
+    try {
+      await Utils.fetchRemoteData(url)
+      return filename
+    } catch (e) {
+      console.log(e)
+      return e
+    }
+  }
+
+  // Internal wrapper to _arwQueryTrackableVisibilityAndTransformation to avoid ccall overhead
+  private _queryTrackableVisibility (trackableId: number) {
+    const transformationMatrixElements = 16
+    const numBytes = transformationMatrixElements * Float64Array.BYTES_PER_ELEMENT
+    this._transMatPtr = this.artoolkitX._malloc(numBytes)
+    // Call compiled C-function directly using '_' notation
+    // https://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-direct-function-calls
+    const transformation = this.artoolkitX._arwQueryTrackableVisibilityAndTransformation(trackableId, this._transMatPtr)
+    const matrix = new Float64Array(this.artoolkitX.instance.HEAPU8.buffer, this._transMatPtr, transformationMatrixElements)
+    if (transformation) {
+      return matrix
+    }
+    return undefined
+  }
+
 
 }
