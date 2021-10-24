@@ -78,7 +78,16 @@ export default class ARControllerX {
     getThresholdMode(): number;
     setThreshold(threshold: number): void;
     getThreshold(): number;
-    setPatternDetectionMode(mode: number): number;
+    setPatternDetectionMode(mode: number): void;
+    getPatternDetectionMode(): number;
+    setMatrixCodeType(type: number): void;
+    getMatrixCodeType(): number;
+    setLabelingMode(mode: number): void;
+    getLabelingMode(): number;
+    setPattRatio(pattRatio: number): void;
+    getPattRatio(): number;
+    setImageProcMode(mode: number): void;
+    getImageProcMode(): number;
     private converter;
     private _updateDetectionMode;
     private _setPatternDetectionMode;
