@@ -116,6 +116,7 @@ interface delegateMethods {
   shutdownAR: () => void;
   addTrackable: (config: string) => number;
   setTrackerOptionInt: (value: number, mode: number) => number;
+  getTrackerOptionInt: (value: number) => number;
   TrackableOptions: {
     ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: { value: number};
     ARW_TRACKER_OPTION_SQUARE_THRESHOLD:  { value: number}
@@ -560,7 +561,7 @@ export default class ARControllerX {
    * @param {string} name Name of the event to listen to.
    * @param {function} callback Callback function to call when an event with the given name is dispatched.
    */
-  addEventListener(name: string, callback: object) {
+  public addEventListener(name: string, callback: object) {
     if (!this.converter().listeners[name]) {
       this.converter().listeners[name] = [];
     }
@@ -572,7 +573,7 @@ export default class ARControllerX {
    * @param {string} name Name of the event to stop listening to.
    * @param {function} callback Callback function to remove from the listeners of the named event.
    */
-  removeEventListener(name: string, callback: object) {
+  public removeEventListener(name: string, callback: object) {
     if (this.converter().listeners[name]) {
       let index = this.converter().listeners[name].indexOf(callback);
       if (index > -1) {
@@ -585,7 +586,7 @@ export default class ARControllerX {
    * Dispatches the given event to all registered listeners on event.name.
    * @param {Object} event Event to dispatch.
    */
-  dispatchEvent(event: { name: string; target: any; data?: object }) {
+  public dispatchEvent(event: { name: string; target: any; data?: object }) {
     let listeners = this.converter().listeners[event.name];
     if (listeners) {
       for (let i = 0; i < listeners.length; i++) {
@@ -603,7 +604,7 @@ export default class ARControllerX {
    * @param {Float64Array} glMat The 4x4 GL transformation matrix.
    * @param {number} scale The scale for the transform.
    */
-  transMatToGLMat(transMat: Float64Array, glMat: Float64Array, scale?: number,) {
+  public transMatToGLMat(transMat: Float64Array, glMat: Float64Array, scale?: number,) {
     if (glMat == undefined) {
       glMat = new Float64Array(16)
     }
@@ -641,7 +642,7 @@ export default class ARControllerX {
    * @param {Float64Array} [glRhMatrix] The 4x4 GL right hand transformation matrix.
    * @param {number} [scale] The scale for the transform.
    */
-  arglCameraViewRHf(glMatrix: Float64Array, glRhMatrix?: Float64Array, scale?: number) {
+  public arglCameraViewRHf(glMatrix: Float64Array, glRhMatrix?: Float64Array, scale?: number) {
     let m_modelview
     if (glRhMatrix == undefined) { m_modelview = new Float64Array(16) } else { m_modelview = glRhMatrix }
 
@@ -684,7 +685,7 @@ export default class ARControllerX {
    * Unique to each ARControllerX.
    * @return {Float64Array} The 16-element WebGL transformation matrix used by the ARControllerX.
    */
-  getTransformationMatrix() {
+  public getTransformationMatrix() {
     return this.transform_mat
   };
 
@@ -692,7 +693,7 @@ export default class ARControllerX {
    * Returns the projection matrix computed from camera parameters for the ARControllerX.
    * @return {Float64Array} The 16-element WebGL camera matrix for the ARControllerX camera parameters.
    */
-  getCameraMatrix() {
+  public getCameraMatrix() {
     return this.camera_mat
   };
 
@@ -701,7 +702,7 @@ export default class ARControllerX {
    * Sets the logging level to use by ARToolKitX.
    * @param {number} mode type for the log level.
    */
-  setLogLevel(mode: boolean) {
+  public setLogLevel(mode: boolean) {
     return this.artoolkitX.setLogLevel(mode);
   };
 
@@ -709,7 +710,7 @@ export default class ARControllerX {
    * Gets the logging level used by ARToolKit.
    * @return {number} return the log level in use.
    */
-  getLogLevel() {
+  public getLogLevel() {
     return this.artoolkitX.getLogLevel();
   };
 
@@ -735,9 +736,28 @@ export default class ARControllerX {
    * and white portions of the markers in the image.
    * @param {number} threshold An integer in the range [0,255] (inclusive).
    */
-  setThreshold (threshold: number) {
+  public setThreshold (threshold: number) {
     this.threshold = threshold;
     this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_THRESHOLD.value, threshold)
+  };
+
+  /**
+    Get the current labeling threshold.
+
+    This function queries the current labeling threshold. For,
+    AR_LABELING_THRESH_MODE_AUTO_MEDIAN, AR_LABELING_THRESH_MODE_AUTO_OTSU,
+    and AR_LABELING_THRESH_MODE_AUTO_BRACKETING
+    the threshold value is only valid until the next auto-update.
+
+    The current threshold mode is not affected by this call.
+
+    The threshold value is not relevant if threshold mode is
+    AR_LABELING_THRESH_MODE_AUTO_ADAPTIVE.
+
+    @return {number} The current threshold value.
+  */
+  public getThreshold () {
+      return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_THRESHOLD.value)
   };
 
   /**
@@ -766,21 +786,21 @@ export default class ARControllerX {
     return this._setPatternDetectionMode(mode)
   };
 
+  // private accessors
+  // ----------------------------------------------------------------------------
 
   /**
-    * Private function to set the pattenr detection mode.
-    * It is implemented like this to have the posibility to let the user set the pattern detection mode
-    * by still providing the automatism to allow to set the pattern detection mode depending on the registered trackables (see {@link #addTrackable}).
-    * @param {*} mode see {@link #setPatternDetectionMode}
-    */
-  private _setPatternDetectionMode(mode: number) {
-    return this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE.value, mode)
+   * Used internally by ARControllerX, it permit to add methods to this.
+   * @return {any} ARControllerX
+   */
+  private converter(): any {
+    return this;
   }
 
   /**
    * For ease of use check what kinds of markers have been added and set the detection mode accordingly
    */
-  _updateDetectionMode() {
+   private _updateDetectionMode() {
     if (this._patternDetection.barcode && this._patternDetection.template) {
       this.setPatternDetectionMode(this.artoolkitX.AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX)
     } else if (this._patternDetection.barcode) {
@@ -790,20 +810,18 @@ export default class ARControllerX {
     }
   }
 
-  // private accessors
-  // ----------------------------------------------------------------------------
   /**
-   * Used internally by ARControllerX, it permit to add methods to this.
-   * @return {any} ARControllerX
-   */
-  private converter(): any {
-    return this;
+    * Private function to set the pattenr detection mode.
+    * It is implemented like this to have the posibility to let the user set the pattern detection mode
+    * by still providing the automatism to allow to set the pattern detection mode depending on the registered trackables (see {@link #addTrackable}).
+    * @param {*} mode see {@link #setPatternDetectionMode}
+    */
+   private _setPatternDetectionMode(mode: number) {
+    return this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE.value, mode)
   }
 
   private async _loadTrackable(url: string) {
     var filename = '/trackable_' + this._marker_count++
-    console.log(filename);
-    
     try {
       await Utils.fetchRemoteData(url)
       return filename

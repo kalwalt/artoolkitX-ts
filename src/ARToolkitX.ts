@@ -85,6 +85,7 @@ export default class ARToolkitX {
   public getLogLevel: () => number;//ok
   public addTrackable: (config: string) => number;
   public setTrackerOptionInt: (value: number, mode: number) => number;
+  public getTrackerOptionInt: (value: number) => number;
   public TrackableOptions: {
     ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: { value: number};
     ARW_TRACKER_OPTION_SQUARE_THRESHOLD:  { value: number}
