@@ -1,5 +1,5 @@
 # artoolkitX-ts
-**artoolkitX-ts** is the Typescript version of [ArtoolkitX.js](https:://github.com/webarkit/artoolkitX.js), the first emscripten port of [ARToolkitX](https:://github.com/artoolkitx/artoolkitx).
+**artoolkitX-ts** is the Typescript version of [ArtoolkitX.js](https://github.com/webarkit/artoolkitX.js), the first emscripten port of [ARToolkitX](https://github.com/artoolkitx/artoolkitx).
 Most of the features are in the library, but it's in an experimental stage. Actually it can track only barcode markers but we plan to add support for pattern markers and 2d markers.
 
 ## Examples
