@@ -1,6 +1,6 @@
 {
   "name": "@kalwalt/artoolkitx-ts",
-  "version": "0.0.1",
+  "version": "0.5.0",
   "main": "dist/ARToolkitX.js",
   "types": "types/src/index.d.ts",
   "description": "Emscripten port of ARToolKitX to Typescript.",
