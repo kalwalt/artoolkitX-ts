@@ -5,7 +5,7 @@ Most of the features are in the library, but it's in an experimental stage. Actu
 ## Examples
 Test the examples:
 - `examples/simple_image.html` it load a simple static image and output some message in the console.
-- `examples/simple_barcode.html` barcode example - a cube should appear on the barcode (partially working) -> to be fixed.
+- `examples/simple_barcode.html` barcode example - a colored cube should appear on the barcode marker.
 
 ## Contributing
 You can contribute to the project, just file an issue and send a PR: you are welcome!

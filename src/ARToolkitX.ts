@@ -115,7 +115,7 @@ export default class ARToolkitX {
     // reference to WASM module
     this.instance
     this.cameraCount = 0
-    this.version = '0.5.0'
+    this.version = '0.5.1'
     console.info('ARToolkitX ', this.version)
   }
 
