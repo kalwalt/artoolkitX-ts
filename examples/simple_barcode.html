@@ -1,5 +1,9 @@
 <html>
 
+<head>
+  <title>A simple example with a barcode marker</title>
+</head>
+
 <body>
   <video loop autoplay muted playsinline id="video"></video>
   <script src="./Data/js/third_party/three.js/three.min.js"></script>
@@ -66,11 +70,7 @@
             console.log("TrackableID: " + trackableInfo.data.trackableId + " visible");
             const transformation = trackableInfo.data.transformation;
             markerRoot.visible = true;
-            //console.log(trackableInfo.data);
-            let rhMatrix = trackableInfo.data.arCameraViewRH
-            //markerRoot.matrix.fromArray(transformation)
-            markerRoot.matrix.elements = trackableInfo.data.transformation
-            //markerRoot.matrix.fromArray(rhMatrix)
+            markerRoot.matrix.fromArray(transformation)
           });
 
 
@@ -113,8 +113,6 @@
               light.position.set(-400, -500, -100);
               scene.add(light);
 
-              //markerRoot.wasVisible = false;
-              //markerRoot.markerMatrix = new Float64Array(16);
               markerRoot.matrixAutoUpdate = false;
 
               // Add the marker models and suchlike into your marker root object.
@@ -165,36 +163,11 @@
       }
     }
 
-    function isMobile() {
-      return /Android|mobile|iPad|iPhone/i.test(navigator.userAgent);
-    }
-
     var getImageData = function (image, input_width, input_height) {
-      var vw = input_width;
-      var vh = input_height;
-
-      var pscale = 320 / Math.max(vw, vh / 3 * 4);
-      var sscale = isMobile() ? window.outerWidth / input_width : 1;
-
-      var sw = vw * sscale;
-      var sh = vh * sscale;
-
-      var w = vw * pscale;
-      var h = vh * pscale;
-      var pw = Math.max(w, h / 3 * 4);
-      var ph = Math.max(h, w / 4 * 3);
-      var ox = (pw - w) / 2;
-      var oy = (ph - h) / 2;
-
-      //ctx.save()
-
       ctx.fillStyle = 'black';
-      ctx.fillRect(0, 0, pw, ph);
-
-      ctx.drawImage(video, 0, 0, vw, vh, ox, oy, w, h);
-
-      //ctx.restore()
-      const imageData = ctx.getImageData(0, 0, pw, ph);
+      ctx.fillRect(0, 0, input_width, input_height);
+      ctx.drawImage(video, 0, 0, input_width, input_height) // draw video
+      const imageData = ctx.getImageData(0, 0, input_width, input_height);
       return imageData
     }
 
