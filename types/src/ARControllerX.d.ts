@@ -66,7 +66,7 @@ export default class ARControllerX {
         data?: object;
     }): void;
     transMatToGLMat(transMat: Float64Array, glMat: Float64Array, scale?: number): Float64Array;
-    arglCameraViewRHf(glMatrix: Float64Array, glRhMatrix?: Float64Array, scale?: number): Float64Array;
+    arglCameraViewRHf(glMatrix: Float32Array, glRhMatrix?: Float32Array, scale?: number): Float32Array;
     getTransformationMatrix(): Float64Array;
     getCameraMatrix(): Float32Array;
     setLogLevel(mode: boolean): number;

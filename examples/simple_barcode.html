@@ -1,5 +1,9 @@
 <html>
 
+<head>
+  <title>A simple example with a barcode marker</title>
+</head>
+
 <body>
   <video loop autoplay muted playsinline id="video"></video>
   <script src="./Data/js/third_party/three.js/three.min.js"></script>
@@ -32,15 +36,14 @@
     ctx = canvas_process.getContext('2d')
     let imageData;
 
+    let fov = 0.8 * 180 / Math.PI;
 
     const renderer = new THREE.WebGLRenderer();
     const scene = new THREE.Scene();
     const markerRoot = new THREE.Object3D();
-    const camera = new THREE.PerspectiveCamera(50, 640 / 480, 0.0001, 100000);
+    const camera = new THREE.PerspectiveCamera(fov, 640 / 480, 0.0001, 100000);
     camera.matrixAutoUpdate = false;
-    const cameraRoot = new THREE.Object3D();
-    cameraRoot.add(camera);
-    scene.add(cameraRoot)
+    scene.add(camera)
 
     initCamera()
       .then(video => {
@@ -62,6 +65,13 @@
 
         ARToolkitX.ARControllerX.init(0, config.cameraParam, config.width, config.height).then((arController) => {
           console.log('arController is: ', arController);
+
+          arController.addEventListener('getMarker', (trackableInfo) => {
+            console.log("TrackableID: " + trackableInfo.data.trackableId + " visible");
+            const transformation = trackableInfo.data.transformation;
+            markerRoot.visible = true;
+            markerRoot.matrix.fromArray(transformation)
+          });
 
 
           try {
@@ -103,8 +113,6 @@
               light.position.set(-400, -500, -100);
               scene.add(light);
 
-              markerRoot.wasVisible = false;
-              markerRoot.markerMatrix = new Float64Array(16);
               markerRoot.matrixAutoUpdate = false;
 
               // Add the marker models and suchlike into your marker root object.
@@ -135,17 +143,8 @@
                 renderer.render(videoScene, videoCamera);
                 renderer.render(scene, camera);
                 renderer.autoClear = ac;
-              }, 2);
+              }, 13);
               ar1 = arController;
-
-              arController.addEventListener('getMarker', (trackableInfo) => {
-                console.log("TrackableID: " + trackableInfo.data.trackableId + " visible");
-                const transformation = trackableInfo.data.transformation;
-                markerRoot.visible = true;
-                //let rhMatrix = transformation
-                markerRoot.matrix.fromArray(transformation)
-              });
-
             });
           }
           catch (e) {
@@ -153,11 +152,6 @@
           }
         });
       })
-
-    function update() {
-      imageData = getImageData(video, width, height);
-      requestAnimationFrame(update)
-    }
 
     window.closeVideo = function () {
       if (ar1) {
@@ -169,23 +163,11 @@
       }
     }
 
-    var getImageData = function (image, width, height) {
-      //ctx.save()
-
+    var getImageData = function (image, input_width, input_height) {
       ctx.fillStyle = 'black';
-      ctx.fillRect(0, 0, width, height);
-
-      if (canvas_process.width < canvas_process.height) {
-        // portrait
-        ctx.translate(width, 0)
-        ctx.rotate(Math.PI / 2)
-        ctx.drawImage(image, 0, 0, height, width) // draw video
-      } else {
-        ctx.drawImage(image, 0, 0, width, height) // draw video
-      }
-
-      //ctx.restore()
-      const imageData = ctx.getImageData(0, 0, width, height)
+      ctx.fillRect(0, 0, input_width, input_height);
+      ctx.drawImage(video, 0, 0, input_width, input_height) // draw video
+      const imageData = ctx.getImageData(0, 0, input_width, input_height);
       return imageData
     }
 
