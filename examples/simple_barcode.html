@@ -32,15 +32,14 @@
     ctx = canvas_process.getContext('2d')
     let imageData;
 
+    let fov = 0.8 * 180 / Math.PI;
 
     const renderer = new THREE.WebGLRenderer();
     const scene = new THREE.Scene();
     const markerRoot = new THREE.Object3D();
-    const camera = new THREE.PerspectiveCamera(50, 640 / 480, 0.0001, 100000);
+    const camera = new THREE.PerspectiveCamera(fov, 640 / 480, 0.0001, 100000);
     camera.matrixAutoUpdate = false;
-    const cameraRoot = new THREE.Object3D();
-    cameraRoot.add(camera);
-    scene.add(cameraRoot)
+    scene.add(camera)
 
     initCamera()
       .then(video => {
@@ -62,6 +61,17 @@
 
         ARToolkitX.ARControllerX.init(0, config.cameraParam, config.width, config.height).then((arController) => {
           console.log('arController is: ', arController);
+
+          arController.addEventListener('getMarker', (trackableInfo) => {
+            console.log("TrackableID: " + trackableInfo.data.trackableId + " visible");
+            const transformation = trackableInfo.data.transformation;
+            markerRoot.visible = true;
+            //console.log(trackableInfo.data);
+            let rhMatrix = trackableInfo.data.arCameraViewRH
+            //markerRoot.matrix.fromArray(transformation)
+            markerRoot.matrix.elements = trackableInfo.data.transformation
+            //markerRoot.matrix.fromArray(rhMatrix)
+          });
 
 
           try {
@@ -103,8 +113,8 @@
               light.position.set(-400, -500, -100);
               scene.add(light);
 
-              markerRoot.wasVisible = false;
-              markerRoot.markerMatrix = new Float64Array(16);
+              //markerRoot.wasVisible = false;
+              //markerRoot.markerMatrix = new Float64Array(16);
               markerRoot.matrixAutoUpdate = false;
 
               // Add the marker models and suchlike into your marker root object.
@@ -135,17 +145,8 @@
                 renderer.render(videoScene, videoCamera);
                 renderer.render(scene, camera);
                 renderer.autoClear = ac;
-              }, 2);
+              }, 13);
               ar1 = arController;
-
-              arController.addEventListener('getMarker', (trackableInfo) => {
-                console.log("TrackableID: " + trackableInfo.data.trackableId + " visible");
-                const transformation = trackableInfo.data.transformation;
-                markerRoot.visible = true;
-                //let rhMatrix = transformation
-                markerRoot.matrix.fromArray(transformation)
-              });
-
             });
           }
           catch (e) {
@@ -153,11 +154,6 @@
           }
         });
       })
-
-    function update() {
-      imageData = getImageData(video, width, height);
-      requestAnimationFrame(update)
-    }
 
     window.closeVideo = function () {
       if (ar1) {
@@ -169,23 +165,36 @@
       }
     }
 
-    var getImageData = function (image, width, height) {
+    function isMobile() {
+      return /Android|mobile|iPad|iPhone/i.test(navigator.userAgent);
+    }
+
+    var getImageData = function (image, input_width, input_height) {
+      var vw = input_width;
+      var vh = input_height;
+
+      var pscale = 320 / Math.max(vw, vh / 3 * 4);
+      var sscale = isMobile() ? window.outerWidth / input_width : 1;
+
+      var sw = vw * sscale;
+      var sh = vh * sscale;
+
+      var w = vw * pscale;
+      var h = vh * pscale;
+      var pw = Math.max(w, h / 3 * 4);
+      var ph = Math.max(h, w / 4 * 3);
+      var ox = (pw - w) / 2;
+      var oy = (ph - h) / 2;
+
       //ctx.save()
 
       ctx.fillStyle = 'black';
-      ctx.fillRect(0, 0, width, height);
+      ctx.fillRect(0, 0, pw, ph);
 
-      if (canvas_process.width < canvas_process.height) {
-        // portrait
-        ctx.translate(width, 0)
-        ctx.rotate(Math.PI / 2)
-        ctx.drawImage(image, 0, 0, height, width) // draw video
-      } else {
-        ctx.drawImage(image, 0, 0, width, height) // draw video
-      }
+      ctx.drawImage(video, 0, 0, vw, vh, ox, oy, w, h);
 
       //ctx.restore()
-      const imageData = ctx.getImageData(0, 0, width, height)
+      const imageData = ctx.getImageData(0, 0, pw, ph);
       return imageData
     }
 
