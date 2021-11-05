@@ -51,8 +51,8 @@ interface ImageObj {
 
 interface ITrackable {
   trackableId: number;
-  transformation: Float64Array;
-  arCameraViewRH?: Float64Array;
+  transformation: Float32Array;
+  arCameraViewRH?: Float32Array;
   visible?: boolean;
   scale?: number;
 }
@@ -98,7 +98,7 @@ interface delegateMethods {
   _arwUpdateAR: () => number;
   _malloc: (numBytes: number) => number;
   _free: (pointer: number) => void;
-  _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float64Array;
+  _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float32Array;
   videoMalloc: {
     framepointer: number;
     framesize: number;
@@ -109,7 +109,7 @@ interface delegateMethods {
     timeSecPtr: number;
     timeMilliSecPtr: number
   };
-  _arwQueryTrackableVisibilityAndTransformation: (id: number, pointer: number) => Float64Array;
+  _arwQueryTrackableVisibilityAndTransformation: (id: number, pointer: number) => Float32Array;
   setValue: (pointer: number, a: number, type: string) => void;
   _arwCapture: () => number;
   stopRunning: () => void;
@@ -509,7 +509,7 @@ export default class ARControllerX {
 
     if (trackableId >= 0) {
       console.log(trackableId);
-      this.trackables.push({ trackableId: trackableId, transformation: (new Float64Array(16)), visible: false })
+      this.trackables.push({ trackableId: trackableId, transformation: (new Float32Array(16)), visible: false })
       if (!this.userSetPatternDetection) { this._updateDetectionMode() }
       return trackableId
     }
@@ -607,13 +607,13 @@ export default class ARControllerX {
    * Converts the given 4x4 openGL matrix in the 16-element transMat array
    * into a 4x4 OpenGL Right-Hand-View matrix and writes the result into the 16-element glMat array.
    * If scale parameter is given, scales the transform of the glMat by the scale parameter.
-   * @param {Float64Array} glMatrix The 4x4 marker transformation matrix.
-   * @param {Float64Array} [glRhMatrix] The 4x4 GL right hand transformation matrix.
+   * @param {Float32Array} glMatrix The 4x4 marker transformation matrix.
+   * @param {Float32Array} [glRhMatrix] The 4x4 GL right hand transformation matrix.
    * @param {number} [scale] The scale for the transform.
    */
-  public arglCameraViewRHf(glMatrix: Float64Array, glRhMatrix?: Float64Array, scale?: number) {
+  public arglCameraViewRHf(glMatrix: Float32Array, glRhMatrix?: Float32Array, scale?: number) {
     let m_modelview
-    if (glRhMatrix == undefined) { m_modelview = new Float64Array(16) } else { m_modelview = glRhMatrix }
+    if (glRhMatrix == undefined) { m_modelview = new Float32Array(16) } else { m_modelview = glRhMatrix }
 
     // x
     m_modelview[0] = glMatrix[0]
@@ -954,12 +954,12 @@ export default class ARControllerX {
   // Internal wrapper to _arwQueryTrackableVisibilityAndTransformation to avoid ccall overhead
   private _queryTrackableVisibility (trackableId: number) {
     const transformationMatrixElements = 16
-    const numBytes = transformationMatrixElements * Float64Array.BYTES_PER_ELEMENT
+    const numBytes = transformationMatrixElements * Float32Array.BYTES_PER_ELEMENT
     this._transMatPtr = this.artoolkitX._malloc(numBytes)
     // Call compiled C-function directly using '_' notation
     // https://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-direct-function-calls
     const transformation = this.artoolkitX._arwQueryTrackableVisibilityAndTransformation(trackableId, this._transMatPtr)
-    const matrix = new Float64Array(this.artoolkitX.instance.HEAPU8.buffer, this._transMatPtr, transformationMatrixElements)
+    const matrix = new Float32Array(this.artoolkitX.instance.HEAPU8.buffer, this._transMatPtr, transformationMatrixElements)
     if (transformation) {
       return matrix
     }

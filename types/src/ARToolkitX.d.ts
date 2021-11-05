@@ -20,7 +20,7 @@ export default class ARToolkitX {
     _arwUpdateAR: () => number;
     _malloc: (numBytes: number) => number;
     _free: (pointer: number) => void;
-    _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float64Array;
+    _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float32Array;
     videoMalloc: {
         framepointer: number;
         framesize: number;
@@ -31,7 +31,7 @@ export default class ARToolkitX {
         timeSecPtr: number;
         timeMilliSecPtr: number;
     };
-    _arwQueryTrackableVisibilityAndTransformation: (id: number, pointer: number) => Float64Array;
+    _arwQueryTrackableVisibilityAndTransformation: (id: number, pointer: number) => Float32Array;
     _arwCapture: () => number;
     setValue: (pointer: number, a: number, type: string) => void;
     stopRunning: () => void;
