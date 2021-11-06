@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>A simple example with a barcode marker</title>
+  <title>A simple example with a pattern marker</title>
 </head>
 
 <body>
@@ -13,7 +13,7 @@
   <script>
 
     let ar1, interval;
-    var canvas_process, ctx;
+    var canvas_process, context_process;
     var width = 640;
     var height = 480;
     const cameraParam = './Data/camera_para.dat';
@@ -28,12 +28,11 @@
     }
 
     canvas_process = document.createElement("canvas");
-    canvas_process.id = "cp"
 
     canvas_process.width = width
     canvas_process.height = height
 
-    ctx = canvas_process.getContext('2d')
+    context_process = canvas_process.getContext('2d')
     let imageData;
 
     let fov = 0.8 * 180 / Math.PI;
@@ -134,7 +133,6 @@
               var trackableId = arController.addTrackable(trackable);
               interval = setInterval(function () {
                 imageData = getImageData(video, width, height)
-                //console.log(imageData);
                 arController.process(imageData);
                 videoTex.needsUpdate = true;
                 const ac = renderer.autoClear;
@@ -164,10 +162,10 @@
     }
 
     var getImageData = function (image, input_width, input_height) {
-      ctx.fillStyle = 'black';
-      ctx.fillRect(0, 0, input_width, input_height);
-      ctx.drawImage(video, 0, 0, input_width, input_height) // draw video
-      const imageData = ctx.getImageData(0, 0, input_width, input_height);
+      context_process.fillStyle = 'black';
+      context_process.fillRect(0, 0, input_width, input_height);
+      context_process.drawImage(video, 0, 0, input_width, input_height) // draw video
+      const imageData = context_process.getImageData(0, 0, input_width, input_height);
       return imageData
     }
 
