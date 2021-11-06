@@ -88,7 +88,11 @@ export default class ARControllerX {
     private converter;
     private _updateDetectionMode;
     private _setPatternDetectionMode;
+    private _ajax;
+    _loadTrackable0(url: string): Promise<unknown>;
     private _loadTrackable;
+    _loadTrackable2(urlOrData: string): Promise<number>;
+    loadTrack(urlOrData: string): Promise<number>;
     private _queryTrackableVisibility;
 }
 export {};

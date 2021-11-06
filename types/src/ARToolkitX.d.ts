@@ -12,6 +12,7 @@ export default class ARToolkitX {
     instance: any;
     private cameraCount;
     private version;
+    private _marker_count;
     initialiseAR: () => number;
     isInitialized: () => boolean;
     getARToolKitVersion: () => number;
@@ -75,5 +76,7 @@ export default class ARToolkitX {
     private converter;
     loadCameraParam(urlOrData: any): Promise<string>;
     _ajax(url: string, target: string, that: any): Promise<unknown>;
+    _loadTrackable(url: string): Promise<unknown>;
+    _loadTrackable2(urlOrData: string): Promise<any>;
     private _storeDataFile;
 }

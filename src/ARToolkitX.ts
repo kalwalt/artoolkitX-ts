@@ -34,6 +34,8 @@
  *
  */
 import ModuleLoader from './ModuleLoader'
+import Utils from './ARXUtils';
+
 
 declare global {
   namespace NodeJS {
@@ -55,6 +57,7 @@ export default class ARToolkitX {
   public instance: any;
   private cameraCount: number;
   private version: string;
+  private _marker_count: number;
   public initialiseAR: () => number;
   public isInitialized: () => boolean;
   public getARToolKitVersion: () => number;
@@ -115,6 +118,7 @@ export default class ARToolkitX {
     // reference to WASM module
     this.instance
     this.cameraCount = 0
+    this._marker_count = 0
     this.version = '0.5.1'
     console.info('ARToolkitX ', this.version)
   }
@@ -212,7 +216,8 @@ export default class ARToolkitX {
       '_arwUpdateAR',
 
       '_free',
-      '_malloc'
+      '_malloc',
+      'FS'
     ].forEach(method => {
       this.converter()[method] = this.instance[method]
     })
@@ -301,6 +306,45 @@ export default class ARToolkitX {
     })
   }
 
+  public async _loadTrackable(url: string) {
+    var filename = '/trackable_' + this._marker_count++
+    let data
+    try {
+      data = await Utils.fetchRemoteData(url)
+      //return filename
+    } catch (e) {
+      console.log(e)
+      return e
+    }
+    this._storeDataFile(data, filename);
+    return filename;
+  }
+
+  public async _loadTrackable2(urlOrData: string) {
+    var filename = '/trackable_' + this._marker_count++;
+    let data;
+    if(urlOrData.indexOf("\n") !== -1) {
+      // assume text from a .patt file
+      data = Utils.string2Uint8Data(urlOrData);
+      console.log(data);
+      
+    } else {
+      // fetch data via HTTP
+      try { data = await Utils.fetchRemoteData(urlOrData);
+      console.log(data);
+      console.log(filename);
+       }
+      catch(error) { throw error; }
+    }
+    console.log(data);
+      console.log(filename);
+    console.log(this);
+    
+    this._storeDataFile(data, filename);
+
+    return this.instance.addTrackable("2d" + ';' + filename + ';' + "1.0")
+  }
+
   // ---------------------------------------------------------------------------
 
   // implementation
@@ -311,6 +355,8 @@ export default class ARToolkitX {
   private _storeDataFile (data: Uint8Array, target: string) {
     // FS is provided by emscripten
     // Note: valid data must be in binary format encoded as Uint8Array
+    console.log(this);
+    
     this.instance.FS.writeFile(target, data, {
       encoding: 'binary'
     })

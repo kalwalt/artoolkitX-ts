@@ -22,16 +22,17 @@ var _projectionMatPtr;
 var _camera_count = 0;
 var _cameraParaFileURL;
 var videoWidth, videoHeight;
-/*var trackable = {
-  trackableType: "2d",
-  url: '../../../examples/Data/pinball.jpg',
-  height: 1.0
-}*/
-
 var trackable = {
+  trackableType: '2d',
+  url: '../../../examples/Data/pinball.jpg',
+  height: 1.0,
+  width: 1.0
+}
+
+/*var trackable = {
   trackableType: "single_barcode",
   barcodeId: 4
-}
+}*/
 
 function load(msg) {
 
