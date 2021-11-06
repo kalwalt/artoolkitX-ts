@@ -212,7 +212,8 @@ export default class ARToolkitX {
       '_arwUpdateAR',
 
       '_free',
-      '_malloc'
+      '_malloc',
+      'FS'
     ].forEach(method => {
       this.converter()[method] = this.instance[method]
     })
