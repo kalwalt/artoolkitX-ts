@@ -89,6 +89,9 @@ interface delegateMethods {
       timeSecPtr: number;
       timeMilliSecPtr: number
     };
+    FS: {
+      writeFile: (target: string, data: Uint8Array, { }: object) => void;
+    };
     setValue: (pointer: number, a: number, type: string) => void;
   }
   loadCameraParam: (cameraParam: string) => Promise<string>;
@@ -940,16 +943,25 @@ export default class ARControllerX {
     return this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE.value, mode)
   }
 
-  private async _loadTrackable(url: string) {
-    var filename = '/trackable_' + this._marker_count++
+  /**
+   * Used internally by the addTrackable method.
+   * @param url of the file to load.
+   * @returns the target.
+   */
+   private async _loadTrackable(url: string) {
+    var target = "/trackable_" + this._marker_count++;
     try {
-      await Utils.fetchRemoteData(url)
-      return filename
+      let data = await Utils.fetchRemoteData(url);
+      this.artoolkitX.instance.FS.writeFile(target, data, {
+        encoding: "binary",
+      });
+      return target;
     } catch (e) {
-      console.log(e)
-      return e
+      console.log(e);
+      return e;
     }
   }
+
 
   // Internal wrapper to _arwQueryTrackableVisibilityAndTransformation to avoid ccall overhead
   private _queryTrackableVisibility (trackableId: number) {
