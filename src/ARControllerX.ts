@@ -491,7 +491,6 @@ export default class ARControllerX {
         }
       } else {
         try {
-          console.log('inside try')
           fileName = await this._loadTrackable(trackableObj.url)
         } catch (error) {
           throw new Error('Error to load trackable: ' + error)
@@ -511,7 +510,6 @@ export default class ARControllerX {
     }
 
     if (trackableId >= 0) {
-      console.log(trackableId);
       this.trackables.push({ trackableId: trackableId, transformation: (new Float32Array(16)), visible: false })
       if (!this.userSetPatternDetection) { this._updateDetectionMode() }
       return trackableId
