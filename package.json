@@ -1,6 +1,6 @@
 {
   "name": "@kalwalt/artoolkitx-ts",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "main": "dist/ARToolkitX.js",
   "types": "types/src/index.d.ts",
   "description": "Emscripten port of ARToolKitX to Typescript.",
@@ -57,6 +57,6 @@
   "dependencies": {
     "@babel/runtime": "^7.15.4",
     "acorn": "^8.5.0",
-    "axios": "^0.23.0"
+    "axios": "^0.24.0"
   }
 }
