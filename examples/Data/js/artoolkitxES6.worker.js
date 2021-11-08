@@ -22,16 +22,16 @@ var _projectionMatPtr;
 var _camera_count = 0;
 var _cameraParaFileURL;
 var videoWidth, videoHeight;
-/*var trackable = {
+var trackable = {
   trackableType: "2d",
   url: '../../../examples/Data/pinball.jpg',
-  height: 1.0
-}*/
+  //height: 1.0
+}
 
-var trackable = {
+/*var trackable = {
   trackableType: "single_barcode",
   barcodeId: 4
-}
+}*/
 
 function load(msg) {
 
@@ -52,7 +52,7 @@ function load(msg) {
         }
         setInterval(function () {
           ar = arController;
-        }, 1000)
+        }, 13)
       })
       arController.addEventListener('getMarker', (trackableInfo) => {
         console.log("TrackableID: " + trackableInfo.data.trackableId);
