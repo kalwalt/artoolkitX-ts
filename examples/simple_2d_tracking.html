@@ -1,0 +1,273 @@
+<html>
+
+<head>
+  <title>A simple example with a 2d image marker</title>
+</head>
+
+<body>
+  <div id="stats" class="ui stats">
+    <div class="stats-item">
+      <p class="stats-item-title">
+        Stats
+      </p>
+    </div>
+  </div>
+  <video loop autoplay muted playsinline id="video"></video>
+  <script src="./Data/js/third_party/three.js/three.min.js"></script>
+  <script src="./Data/js/third_party/three.js/stats.min.js"></script>
+  <script src="../dist/ARToolkitX.js"></script>
+
+
+  <script id="vert" type="glsl-vertex">
+          precision highp float;
+          precision lowp int;
+
+          uniform mat4 cameraMatrix;
+          uniform mat4 transformationMatrix;
+
+          varying vec2 vUv;
+
+          void main(void)
+          {
+            vUv = uv;
+            gl_Position = cameraMatrix * transformationMatrix * vec4(position, 1.0);
+          }
+          </script>
+
+  <script id="frag" type="glsl-fragment">
+          precision highp float;
+          precision lowp int;
+
+          varying vec2 vUv;
+
+          void main(void)
+          {
+            gl_FragColor = vec4(vUv, 1.0, 1.0);
+          }
+          </script>
+
+  <script>
+
+    var statsMain = new Stats();
+    statsMain.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+    document.getElementById('stats').appendChild(statsMain.dom);
+
+    let ar1, interval;
+    var width = 640;
+    var height = 480;
+    var canvas_process, context_process;
+
+    const cameraParam = './Data/camera_para.dat';
+
+    const config = {
+      cameraParam: cameraParam,
+      width: 640,
+      height: 480
+    };
+
+    var trackable = {
+      trackableType: "2d",
+      url: './Data/pinball.jpg',
+      width: 1.0
+    }
+
+    canvas_process = document.createElement("canvas");
+
+    canvas_process.width = width
+    canvas_process.height = height
+
+    context_process = canvas_process.getContext('2d')
+    let imageData;
+
+
+    var cMat = new THREE.Matrix4();
+    var tMat = new THREE.Matrix4();
+
+    var USE_SHADER = false;
+
+    var shaderMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        cameraMatrix: { type: 'm4', value: cMat },
+        transformationMatrix: { type: 'm4', value: tMat }
+      },
+      vertexShader: vert.text,
+      fragmentShader: frag.text
+    });
+
+    var renderer = new THREE.WebGLRenderer();
+    var scene = new THREE.Scene();
+    // Create a camera and a marker root object for your Three.js scene.
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 1000);
+    scene.add(camera);
+
+    renderer.setSize(config.width, config.height);
+    document.body.appendChild(renderer.domElement);
+    renderer.domElement.style = 'position: absolute; width: 100%; height: 100%'
+
+
+    initCamera()
+      .then(video => {
+
+        // start camera playback
+        sourceVideo = video;
+        sourceVideo.width = width;
+        sourceVideo.height = height;
+        sourceVideo.play();
+
+        return new Promise(resolve => {
+          sourceVideo.addEventListener("loadeddata", event => {
+            console.log("Camera is ready");
+            resolve();
+          });
+        });
+      }).then(_ => {
+
+
+        ARToolkitX.ARControllerX.init(0, config.cameraParam, config.width, config.height).then((arController) => {
+          console.log('arController is: ', arController);
+
+          arController.addEventListener('getMarker', (trackableInfo) => {
+            console.log("TrackableID: " + trackableInfo.data.trackableId + " visible");
+            const transformation = trackableInfo.data.transformation;
+            markerRoot.visible = true;
+            markerRoot.matrix.fromArray(transformation)
+          });
+
+
+          try {
+            arController.start().then(() => {
+              console.log("start done");
+              const camMatrix = arController.getCameraProjMatrix(0.0001, 100000);
+
+              camera.projectionMatrix.fromArray(camMatrix);
+              camera.updateProjectionMatrix();
+              var videoTex = new THREE.Texture(video);
+
+              videoTex.minFilter = THREE.LinearFilter;
+              videoTex.flipY = false;
+
+              // Then create a plane textured with the video.
+              var plane = new THREE.Mesh(
+                new THREE.PlaneBufferGeometry(2, 2),
+                new THREE.MeshBasicMaterial({ map: videoTex, side: THREE.DoubleSide })
+              );
+
+              // The video plane shouldn't care about the z-buffer.
+              plane.material.depthTest = false;
+              plane.material.depthWrite = false;
+
+              // Create a camera and a scene for the video plane and
+              // add the camera and the video plane to the scene.
+              var videoCamera = new THREE.OrthographicCamera(-1, 1, -1, 1, -1, 1);
+              var videoScene = new THREE.Scene();
+              videoScene.add(plane);
+              videoScene.add(videoCamera);
+
+              var light = new THREE.PointLight(0xffffff);
+              light.position.set(400, 500, 100);
+              scene.add(light);
+              var light = new THREE.PointLight(0xffffff);
+              light.position.set(-400, -500, -100);
+              scene.add(light);
+
+              var markerRoot = new THREE.Object3D();
+
+              markerRoot.wasVisible = false;
+              markerRoot.markerMatrix = new Float64Array(16);
+              markerRoot.matrixAutoUpdate = false;
+
+              // Add the marker models and suchlike into your marker root object.
+
+              var cube = new THREE.Mesh(
+                new THREE.BoxGeometry(0.5, 0.5, 0.5),
+                USE_SHADER ?
+                  shaderMaterial :
+                  new THREE.MeshLambertMaterial({ color: 0x44ffff, wireframe: false })
+              );
+              markerRoot.add(cube);
+              markerRoot.visible = true;
+              // adding a grid xz and an axesHelper
+              var axesHelper = new THREE.AxesHelper(5);
+              markerRoot.add(axesHelper);
+
+              var gridXZ = new THREE.GridHelper(10, 10);
+              markerRoot.add(gridXZ);
+
+              // Add the marker root to your scene.
+              scene.add(markerRoot);
+
+              var trackableId = arController.addTrackable(trackable);
+              interval = setInterval(function () {
+                imageData = getImageData(video, width, height)
+                arController.process(imageData);
+                videoTex.needsUpdate = true;
+                const ac = renderer.autoClear;
+                renderer.autoClear = false;
+                renderer.clear();
+                statsMain.update()
+                renderer.render(videoScene, videoCamera);
+                renderer.render(scene, camera);
+                renderer.autoClear = ac;
+              }, 13);
+              ar1 = arController;
+            });
+          }
+          catch (e) {
+            console.log(e);
+          }
+        });
+      })
+    
+
+    window.closeVideo = function () {
+      if (ar1) {
+        ar1.dispose();
+        clearInterval(interval);
+      }
+      else {
+        console.error("Trying to close before opened");
+      }
+    }
+
+    var getImageData = function (image, input_width, input_height) {
+      context_process.fillStyle = 'black';
+      context_process.fillRect(0, 0, input_width, input_height);
+      context_process.drawImage(video, 0, 0, input_width, input_height) // draw video
+      const imageData = context_process.getImageData(0, 0, input_width, input_height);
+      return imageData
+    }
+
+    async function initCamera() {
+
+      const constraints = {
+        audio: false,
+        video: {
+          // using the "environment" rear camera
+          facingMode: "environment",
+          // using the "user" front camera
+          // facingMode: "user",
+          width: width,
+          height: height
+        }
+      };
+
+      // initialize video source
+      const video = document.querySelector("#video");
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = stream;
+
+      return new Promise(resolve => {
+        video.onloadedmetadata = () => {
+          resolve(video);
+        };
+      });
+    };
+
+
+
+  </script>
+
+  <button class="ui marker" onclick="window.closeVideo()">Close Video</button>
+</body>
+
+</html>
