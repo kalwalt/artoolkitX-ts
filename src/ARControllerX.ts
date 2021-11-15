@@ -340,6 +340,7 @@ export default class ARControllerX {
       if (success >= 0) {
         this.trackables.forEach((trackable) => {      
           const transformation = this._queryTrackableVisibility(trackable.trackableId)
+          console.log('matrix is: ', transformation);    
           if (transformation) {
             trackable.transformation = transformation
             trackable.arCameraViewRH = this.arglCameraViewRHf(transformation)
