@@ -68,7 +68,7 @@
     var trackable = {
       trackableType: "2d",
       url: './Data/pinball.jpg',
-      width: 1.0
+      //width: 1.0
     }
 
     canvas_process = document.createElement("canvas");
@@ -194,18 +194,23 @@
               scene.add(markerRoot);
 
               var trackableId = arController.addTrackable(trackable);
-              interval = setInterval(function () {
-                imageData = getImageData(video, width, height)
+              imageData = getImageData(video, width, height);
+
+              function tick () {
+                requestAnimationFrame(tick);
+                imageData = getImageData(video, width, height);
                 arController.process(imageData);
                 videoTex.needsUpdate = true;
                 const ac = renderer.autoClear;
                 renderer.autoClear = false;
                 renderer.clear();
-                statsMain.update()
                 renderer.render(videoScene, videoCamera);
                 renderer.render(scene, camera);
                 renderer.autoClear = ac;
-              }, 13);
+                
+              }
+              tick()
+
               ar1 = arController;
             });
           }

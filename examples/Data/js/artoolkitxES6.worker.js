@@ -40,6 +40,7 @@ function load(msg) {
 
     arController.addEventListener('getMarker', (trackableInfo) => {
       console.log("TrackableID: " + trackableInfo.data.trackableId);
+      markerResult = {type: "found", matrixGL_RH: JSON.stringify(ev.data.transformation)};
     });
    
     try {
