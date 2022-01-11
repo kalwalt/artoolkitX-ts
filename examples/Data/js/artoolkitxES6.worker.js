@@ -25,13 +25,8 @@ var videoWidth, videoHeight;
 var trackable = {
   trackableType: "2d",
   url: '../../../examples/Data/pinball.jpg',
-  //height: 1.0
+  height: 1.0
 }
-
-/*var trackable = {
-  trackableType: "single_barcode",
-  barcodeId: 4
-}*/
 
 function load(msg) {
 
@@ -40,7 +35,7 @@ function load(msg) {
 
     arController.addEventListener('getMarker', (trackableInfo) => {
       console.log("TrackableID: " + trackableInfo.data.trackableId);
-      markerResult = {type: "found", matrixGL_RH: JSON.stringify(ev.data.transformation)};
+      markerResult = {type: "found", matrixGL_RH: JSON.stringify(trackableInfo.data.transformation)};
     });
    
     try {

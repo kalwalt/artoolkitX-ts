@@ -17,11 +17,6 @@ var setMatrix = function (matrix, value) {
 
 function start(markerUrl, video, input_width, input_height, render_update, track_update) {
   var vw, vh;
-  var sw, sh;
-  var pscale, sscale;
-  var w, h;
-  var pw, ph;
-  var ox, oy;
   var worker;
   var camera_para = '../../../examples/Data/camera_para.dat'
 
@@ -34,8 +29,8 @@ function start(markerUrl, video, input_width, input_height, render_update, track
 
   var scene = new THREE.Scene();
 
-  var camera = new THREE.Camera();
-  camera.matrixAutoUpdate = false;
+  let fov = 0.8 * 180 / Math.PI;
+  const camera = new THREE.PerspectiveCamera(fov, vw / vh, 0.01, 1000);
 
   scene.add(camera);
 
@@ -60,45 +55,22 @@ function start(markerUrl, video, input_width, input_height, render_update, track
     vw = input_width;
     vh = input_height;
 
-    pscale = 320 / Math.max(vw, vh / 3 * 4);
-    sscale = isMobile() ? window.outerWidth / input_width : 1;
+    canvas_process.width = vw;
+    canvas_process.height = vh;
 
-    sw = vw * sscale;
-    sh = vh * sscale;
-
-    w = vw * pscale;
-    h = vh * pscale;
-    pw = Math.max(w, h / 3 * 4);
-    ph = Math.max(h, w / 4 * 3);
-    ox = (pw - w) / 2;
-    oy = (ph - h) / 2;
-    canvas_process.style.clientWidth = pw + "px";
-    canvas_process.style.clientHeight = ph + "px";
-    canvas_process.width = pw;
-    canvas_process.height = ph;
-
-    renderer.setSize(sw, sh);
+    renderer.setSize(vw, vh);
 
     worker = new Worker('./Data/js/artoolkitxES6.worker.js')
 
-    worker.postMessage({ type: "load", pw: pw, ph: ph, camera_para: camera_para, marker: markerUrl });
+    worker.postMessage({ type: "load", pw: vw, ph: vh, camera_para: camera_para, marker: markerUrl });
 
     worker.onmessage = function (ev) {
       var msg = ev.data;
       switch (msg.type) {
         case "loaded": {
           var proj = JSON.parse(msg.proj);
-          var ratioW = pw / w;
-          var ratioH = ph / h;
-          proj[0] *= ratioW;
-          proj[4] *= ratioW;
-          proj[8] *= ratioW;
-          proj[12] *= ratioW;
-          proj[1] *= ratioH;
-          proj[5] *= ratioH;
-          proj[9] *= ratioH;
-          proj[13] *= ratioH;
-          setMatrix(camera.projectionMatrix, proj);
+          camera.projectionMatrix.fromArray(proj);
+          camera.updateProjectionMatrix();
           break;
         }
         case "endLoading": {
@@ -160,10 +132,9 @@ function start(markerUrl, video, input_width, input_height, render_update, track
 
   var process = function () {
     context_process.fillStyle = 'black';
-    context_process.fillRect(0, 0, pw, ph);
-    context_process.drawImage(video, 0, 0, vw, vh, ox, oy, w, h);
-
-    var imageData = context_process.getImageData(0, 0, pw, ph);
+    context_process.fillRect(0, 0, vw, vh);
+    context_process.drawImage(video, 0, 0, vw, vh)
+    var imageData = context_process.getImageData(0, 0, vw, vh);
     worker.postMessage({ type: 'process', imagedata: imageData }, [imageData.data.buffer]);
   }
   var tick = function () {
