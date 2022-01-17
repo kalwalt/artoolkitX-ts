@@ -17,11 +17,6 @@ var setMatrix = function (matrix, value) {
 
 function start(markerUrl, video, input_width, input_height, render_update, track_update) {
   var vw, vh;
-  var sw, sh;
-  var pscale, sscale;
-  var w, h;
-  var pw, ph;
-  var ox, oy;
   var worker;
   var camera_para = '../../../examples/Data/camera_para.dat'
 
@@ -33,6 +28,9 @@ function start(markerUrl, video, input_width, input_height, render_update, track
   renderer.setPixelRatio(window.devicePixelRatio);
 
   var scene = new THREE.Scene();
+
+  //let fov = 0.8 * 180 / Math.PI;
+  //const camera = new THREE.PerspectiveCamera(fov, vw / vh, 0.01, 1000);
 
   var camera = new THREE.Camera();
   camera.matrixAutoUpdate = false;
@@ -78,16 +76,17 @@ function start(markerUrl, video, input_width, input_height, render_update, track
     canvas_process.height = ph;
 
     renderer.setSize(sw, sh);
-
     worker = new Worker('./Data/js/artoolkitxES6.worker.js')
 
-    worker.postMessage({ type: "load", pw: pw, ph: ph, camera_para: camera_para, marker: markerUrl });
+    worker.postMessage({ type: "load",  pw: pw, ph: ph, camera_para: camera_para, marker: markerUrl });
 
     worker.onmessage = function (ev) {
       var msg = ev.data;
       switch (msg.type) {
         case "loaded": {
           var proj = JSON.parse(msg.proj);
+          //camera.projectionMatrix.fromArray(proj);
+          //camera.updateProjectionMatrix();
           var ratioW = pw / w;
           var ratioH = ph / h;
           proj[0] *= ratioW;

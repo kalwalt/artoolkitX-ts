@@ -22,21 +22,21 @@ var _projectionMatPtr;
 var _camera_count = 0;
 var _cameraParaFileURL;
 var videoWidth, videoHeight;
-/*var trackable = {
+var trackable = {
   trackableType: "2d",
   url: '../../../examples/Data/pinball.jpg',
   height: 1.0
-}*/
-
-var trackable = {
-  trackableType: "single_barcode",
-  barcodeId: 4
 }
 
 function load(msg) {
 
   ARToolkitX.ARControllerX.init(0, msg.camera_para, msg.pw, msg.ph).then((arController) => {
     console.log('arController is: ', arController);
+
+    arController.addEventListener('getMarker', (trackableInfo) => {
+      console.log("TrackableID: " + trackableInfo.data.trackableId);
+      markerResult = {type: "found", matrixGL_RH: JSON.stringify(trackableInfo.data.transformation)};
+    });
    
     try {
 
@@ -52,11 +52,9 @@ function load(msg) {
         }
         setInterval(function () {
           ar = arController;
-        }, 1000)
+        }, 13)
       })
-      arController.addEventListener('getMarker', (trackableInfo) => {
-        console.log("TrackableID: " + trackableInfo.data.trackableId);
-      });
+      
     } catch (e) {
       console.error(e)
     }
