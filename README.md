@@ -7,6 +7,8 @@ Test the examples:
 - `examples/simple_image.html` it load a simple static image and output some message in the console.
 - `examples/simple_barcode.html` barcode example - a colored cube should appear on the barcode marker.
 - `examples/simple_hiro.html` pattern example - a colored cube should appear on the hiro marker.
+- `examples/simple_2d_tracking.html` 2d tracking example with the pinball image - very bad perfs.
+- `examples/ArtoolkitX_example.html` 2d tracking example in a WebWorker with the pinball image - very bad perfs.
 
 ## Contributing
 You can contribute to the project, just file an issue and send a PR: you are welcome!
@@ -28,5 +30,5 @@ For a production-optimized build run:
 
 ### Future plans
 
-- Add support for 2d markers!
+- Add support for 2d markers! (only experimental examples for now!)
 - npm package
