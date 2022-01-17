@@ -31,4 +31,6 @@ For a production-optimized build run:
 ### Future plans
 
 - Add support for 2d markers! (only experimental examples for now!)
+- new build script for the wasm lib.
 - npm package
+- multi pattern marker support.
