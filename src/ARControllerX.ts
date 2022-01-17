@@ -339,7 +339,7 @@ export default class ARControllerX {
       const success = this.artoolkitX._arwUpdateAR()
       if (success >= 0) {
         this.trackables.forEach((trackable) => {      
-          const transformation = this._queryTrackableVisibility(trackable.trackableId)
+          const transformation = this._queryTrackableVisibility(trackable.trackableId)   
           if (transformation) {
             trackable.transformation = transformation
             trackable.arCameraViewRH = this.arglCameraViewRHf(transformation)
