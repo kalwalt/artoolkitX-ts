@@ -51,6 +51,7 @@
   "scripts": {
     "dev-ts": "webpack --mode development --progress --watch",
     "docs": "typedoc",
+    "build": "node tools/makem.js; echo Built at `date`",
     "build-ts": "webpack --mode production"
   },
   "license": "LGPL-3.0",
