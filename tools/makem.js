@@ -315,6 +315,18 @@ var INCLUDES_OPENCV = [
     path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/opencv-3.4.1/modules/video/include/'),
 ].map(function (s) { return '-I' + s }).join(' ');
 
+var OPENCV_LIBS = [
+	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_calib3d.a'),
+	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_core.a'),
+	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_features2d.a'),
+	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_flann.a'),
+    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_highgui.a'),
+	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_imgcodecs.a'),
+    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_imgproc.a'),
+	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_video.a'),
+    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_videoio.a'),
+].map(function(s) { return ' ' + s }).join(' ');
+
 var ALL_BC = [
     path.resolve(OUTPUT_PATH + '/libarx.bc'),
     path.resolve(OUTPUT_PATH + '/libar.bc'),
@@ -395,9 +407,9 @@ var compile_arxlib = format(EMCC + ' ' + INCLUDES + ' '
 var compile_wasm_es6 = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_ARX + ' ' + INCLUDES_AR2 + ' ' + INCLUDES_ARG + ' '
     + INCLUDES_ARUTIL + ' ' + INCLUDES_ARVIDEO + ' ' + INCLUDES_OCVT + ' '
-    + artoolkitxjs_sources.join(' ') + ' ' + ALL_BC + ' '
+    + INCLUDES_OPENCV + ' ' + artoolkitxjs_sources.join(' ') + ' ' + ALL_BC + ' '
     + FLAGS + ' ' + DEFINES + ES6_FLAGS + WASM_FLAGS_SINGLE_FILE
-    + EXPORT_FUNCTIONS + EXPORTED_RUNTIME_FUNCTIONS
+    + EXPORT_FUNCTIONS + EXPORTED_RUNTIME_FUNCTIONS +  OPENCV_LIBS
     + " -o {OUTPUT_PATH}{BUILD_WASM_ES6_FILE} ",
     OUTPUT_PATH,
     BUILD_WASM_ES6_FILE);
