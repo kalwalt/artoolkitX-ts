@@ -63,6 +63,7 @@ var arx_sources = [
     'ARTrackable.cpp',
     'ARPattern.cpp',
     'ARTrackableMultiSquare.cpp',
+    'ARTrackableMultiSquareAuto.cpp',
     'ARTrackableNFT.cpp',
     'ARTrackable2d.cpp',
     'ARTrackableSquare.cpp',
@@ -229,7 +230,9 @@ var arvideo_sources = [
     'videoAspectRatio.c',
     'videoLuma.c',
     'videoRGBA.c',
-    'videoSaveImage.c'
+    'videoSaveImage.c',
+    'Image/videoImage.c',
+    'Web/videoWeb.c'
 ].map(function (src) {
     return path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/ARVideo', src);
 });
@@ -259,11 +262,13 @@ FLAGS += ' -s USE_LIBJPEG=1';
 FLAGS += ' --memory-init-file 0 '; // for memless file
 FLAGS += ' --bind ';
 
+var PROJECT_SOURCE_DIR = path.resolve( ARTOOLKITX_ROOT + '/Source');
+
 var EXPORT_FUNCTIONS = " -s EXPORTED_FUNCTIONS='['_arwUpdateAR', '_arwCapture', '_arwGetProjectionMatrix', '_arwQueryTrackableVisibilityAndTransformation', '_arwGetTrackablePatternConfig', '_arwGetTrackablePatternImage', '_arwLoadOpticalParams']' ";
 var EXPORTED_RUNTIME_FUNCTIONS = " -s EXPORTED_RUNTIME_METHODS='['ccall', 'cwrap', 'FS', 'setValue']' ";
 var WASM_FLAGS_SINGLE_FILE = " -s SINGLE_FILE=1 ";
 var ES6_FLAGS = " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s EXPORT_NAME='artoolkitX' -s MODULARIZE=1 ";
-
+var POST_FLAGS = " --post-js " + PROJECT_SOURCE_DIR + "/artoolkitx.js/ARX_additions.js ";
 
 var INCLUDES = [
     path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/AR/include/'),
@@ -295,6 +300,7 @@ var INCLUDES_ARUTIL = [
 
 var INCLUDES_ARVIDEO = [
     path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/ARVideo/include/'),
+    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/ARVideo/Web/'),
 ].map(function (s) { return '-I' + s }).join(' ');
 
 var INCLUDES_OCVT = [
@@ -407,9 +413,9 @@ var compile_arxlib = format(EMCC + ' ' + INCLUDES + ' '
 var compile_wasm_es6 = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_ARX + ' ' + INCLUDES_AR2 + ' ' + INCLUDES_ARG + ' '
     + INCLUDES_ARUTIL + ' ' + INCLUDES_ARVIDEO + ' ' + INCLUDES_OCVT + ' '
-    + INCLUDES_OPENCV + ' ' + artoolkitxjs_sources.join(' ') + ' ' + ALL_BC + ' '
+    + INCLUDES_OPENCV + ' ' + artoolkitxjs_sources.join(' ') + ' ' + ALL_BC + ' ' +  OPENCV_LIBS
     + FLAGS + ' ' + DEFINES + ES6_FLAGS + WASM_FLAGS_SINGLE_FILE
-    + EXPORT_FUNCTIONS + EXPORTED_RUNTIME_FUNCTIONS +  OPENCV_LIBS
+    + EXPORT_FUNCTIONS + EXPORTED_RUNTIME_FUNCTIONS  + POST_FLAGS
     + " -o {OUTPUT_PATH}{BUILD_WASM_ES6_FILE} ",
     OUTPUT_PATH,
     BUILD_WASM_ES6_FILE);
