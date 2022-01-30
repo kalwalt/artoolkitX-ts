@@ -263,6 +263,7 @@ FLAGS += ' -s TOTAL_MEMORY=' + MEM + ' ';
 FLAGS += ' -s USE_ZLIB=1';
 FLAGS += ' -s USE_LIBJPEG=1';
 FLAGS += ' --memory-init-file 0 '; // for memless file
+FLAGS += ' -s ALLOW_MEMORY_GROWTH=1';
 FLAGS += ' --bind ';
 
 var PROJECT_SOURCE_DIR = path.resolve( ARTOOLKITX_ROOT + '/Source');
@@ -272,6 +273,8 @@ var EXPORTED_RUNTIME_FUNCTIONS = " -s EXPORTED_RUNTIME_METHODS='['ccall', 'cwrap
 var WASM_FLAGS_SINGLE_FILE = " -s SINGLE_FILE=1 ";
 var ES6_FLAGS = " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s EXPORT_NAME='artoolkitX' -s MODULARIZE=1 ";
 var POST_FLAGS = " --post-js " + PROJECT_SOURCE_DIR + "/artoolkitx.js/ARX_additions.js ";
+var ASSERTIONS_FLAGS = ' -s ASSERTIONS=1 ';
+FLAGS += ASSERTIONS_FLAGS;
 
 var INCLUDES = [
     path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/AR/include/'),
