@@ -231,6 +231,7 @@ var arvideo_sources = [
     'videoLuma.c',
     'videoRGBA.c',
     'videoSaveImage.c',
+    'Dummy/videoDummy.c',
     'Image/videoImage.c',
     'Web/videoWeb.c'
 ].map(function (src) {
@@ -253,6 +254,8 @@ var DEFINES = ' ';
 if (HAVE_NFT) DEFINES += ' -D HAVE_NFT ';
 DEFINES += ' -DARX_EXPORTS=1 -DARX_TARGET_PLATFORM_EMSCRIPTEN=1 ';
 
+ARVIDEO_DEFINES = ' -DARVIDEO_INPUT_DUMMY -DARVIDEO_INPUT_IMAGE -DARVIDEO_INPUT_WEB '
+
 var FLAGS = '' + OPTIMIZE_FLAGS;
 //FLAGS += ' -std=c++11 '
 FLAGS += ' -Wno-warn-absolute-paths ';
@@ -264,7 +267,7 @@ FLAGS += ' --bind ';
 
 var PROJECT_SOURCE_DIR = path.resolve( ARTOOLKITX_ROOT + '/Source');
 
-var EXPORT_FUNCTIONS = " -s EXPORTED_FUNCTIONS='['_arwUpdateAR', '_arwCapture', '_arwGetProjectionMatrix', '_arwQueryTrackableVisibilityAndTransformation', '_arwGetTrackablePatternConfig', '_arwGetTrackablePatternImage', '_arwLoadOpticalParams']' ";
+var EXPORT_FUNCTIONS = " -s EXPORTED_FUNCTIONS='['_arwUpdateAR', '_arwCapture', '_arwGetProjectionMatrix', '_arwQueryTrackableVisibilityAndTransformation', '_arwGetTrackablePatternConfig', '_arwGetTrackablePatternImage', '_arwLoadOpticalParams', '_ar2VideoOpenAsyncWeb', '_ar2VideoPushInitWeb']' ";
 var EXPORTED_RUNTIME_FUNCTIONS = " -s EXPORTED_RUNTIME_METHODS='['ccall', 'cwrap', 'FS', 'setValue']' ";
 var WASM_FLAGS_SINGLE_FILE = " -s SINGLE_FILE=1 ";
 var ES6_FLAGS = " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s EXPORT_NAME='artoolkitX' -s MODULARIZE=1 ";
@@ -395,7 +398,7 @@ var compile_arutillib = format(EMCC + ' ' + INCLUDES + ' '
 
 var compile_arvideolib = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_ARVIDEO + ' ' + arvideo_sources.join(' ')
-    + FLAGS + ' ' + DEFINES + ' -r -o {OUTPUT_PATH}libarvideo.bc ',
+    + FLAGS + ' ' + DEFINES + ARVIDEO_DEFINES + ' -r -o {OUTPUT_PATH}libarvideo.bc ',
     OUTPUT_PATH);
 
 var compile_ocvtlib = format(EMCC + ' ' + INCLUDES + ' '
