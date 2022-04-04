@@ -265,6 +265,7 @@ FLAGS += ' -s USE_LIBJPEG=1';
 FLAGS += ' --memory-init-file 0 '; // for memless file
 FLAGS += ' -s ALLOW_MEMORY_GROWTH=1';
 FLAGS += ' --bind ';
+FLAGS += ' --llvm-lto 1 -s INVOKE_RUN=0 -msse -msse2 -msse3 -mssse3 -msimd128 '
 
 var PROJECT_SOURCE_DIR = path.resolve( ARTOOLKITX_ROOT + '/Source');
 
@@ -273,8 +274,9 @@ var EXPORTED_RUNTIME_FUNCTIONS = " -s EXPORTED_RUNTIME_METHODS='['ccall', 'cwrap
 var WASM_FLAGS_SINGLE_FILE = " -s SINGLE_FILE=1 ";
 var ES6_FLAGS = " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s EXPORT_NAME='artoolkitX' -s MODULARIZE=1 ";
 var POST_FLAGS = " --post-js " + PROJECT_SOURCE_DIR + "/artoolkitx.js/ARX_additions.js ";
-var ASSERTIONS_FLAGS = ' -s ASSERTIONS=1 ';
+/*var ASSERTIONS_FLAGS = ' -s ASSERTIONS=1 ';
 FLAGS += ASSERTIONS_FLAGS;
+FLAGS += ' -s DISABLE_EXCEPTION_CATCHING=0 ';*/
 
 var INCLUDES = [
     path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/AR/include/'),
@@ -379,7 +381,7 @@ function clean_builds() {
     catch (e) { return console.log(e); }
 }
 
-var compile_arlib = format(EMCC + ' ' + ' --llvm-lto 1 --memory-init-file 0 -s INVOKE_RUN=0 -s NO_EXIT_RUNTIME=1   -msse -msse2 -msse3 -mssse3 -msimd128 ' + INCLUDES + ' '
+var compile_arlib = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_AR + ' ' + INCLUDES_OPENCV + ' ' + INCLUDES_OCVT + ' ' + ar_sources.join(' ')
     + FLAGS + ' ' + DEFINES + ' -DNDEBUG ' + ' -r -o {OUTPUT_PATH}libar.bc ',
     OUTPUT_PATH);

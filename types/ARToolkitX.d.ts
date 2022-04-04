@@ -9,44 +9,71 @@ declare global {
     }
 }
 export default class ARToolkitX {
-    static get UNKNOWN_MARKER(): number;
-    static get NFT_MARKER(): number;
     instance: any;
     private cameraCount;
     private version;
-    setup: (width: number, height: number, cameraId: number) => number;
-    teardown: () => void;
-    setupAR2: (id: number) => void;
-    setDebugMode: (id: number, mode: boolean) => number;
-    getDebugMode: (id: number) => boolean;
-    getProcessingImage: (id: number) => number;
-    detectMarker: (id: number) => number;
-    detectNFTMarker: (id: number) => number;
-    getNFTMarker: (id: number, markerIndex: number) => number;
-    setLogLevel: (mode: boolean) => number;
-    getLogLevel: () => number;
-    frameMalloc: {
+    initialiseAR: () => number;
+    isInitialized: () => boolean;
+    getARToolKitVersion: () => number;
+    arwStartRunningJS: (arCameraURL: string, width: number, height: number) => number;
+    pushVideoInit: (n: number, width: number, height: number, pixelformat: string, a: number, b: number) => number;
+    _arwUpdateAR: () => number;
+    _malloc: (numBytes: number) => number;
+    _free: (pointer: number) => void;
+    _arwGetProjectionMatrix: (nearPlane: number, farPlane: number, pointer: number) => Float32Array;
+    videoMalloc: {
         framepointer: number;
         framesize: number;
         videoLumaPointer: number;
-        camera: number;
-        transform: number;
+        lumaFramePointer: number;
+        newFrameBoolPtr: number;
+        fillFlagIntPtr: number;
+        timeSecPtr: number;
+        timeMilliSecPtr: number;
     };
-    setProjectionNearPlane: (id: number, value: number) => void;
-    getProjectionNearPlane: (id: number) => number;
-    setProjectionFarPlane: (id: number, value: number) => void;
-    getProjectionFarPlane: (id: number) => number;
-    setThresholdMode: (id: number, mode: number) => number;
-    getThresholdMode: (id: number) => number;
-    setThreshold: (id: number, threshold: number) => number;
-    getThreshold: (id: number) => number;
-    setImageProcMode: (id: number, mode: number) => number;
-    getImageProcMode: (id: number) => number;
+    _arwQueryTrackableVisibilityAndTransformation: (id: number, pointer: number) => Float32Array;
+    _arwCapture: () => number;
+    setValue: (pointer: number, a: number, type: string) => void;
+    stopRunning: () => void;
+    shutdownAR: () => void;
+    setLogLevel: (mode: boolean) => number;
+    getLogLevel: () => number;
+    addTrackable: (config: string) => number;
+    setTrackerOptionInt: (value: number, mode: number) => number;
+    getTrackerOptionInt: (value: number) => number;
+    setTrackerOptionFloat: (value: number, mode: number) => void;
+    getTrackerOptionFloat: (value: number) => number;
+    TrackableOptions: {
+        ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: {
+            value: number;
+        };
+        ARW_TRACKER_OPTION_SQUARE_THRESHOLD: {
+            value: number;
+        };
+        ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE: {
+            value: number;
+        };
+        ARW_TRACKER_OPTION_SQUARE_MATRIX_CODE_TYPE: {
+            value: number;
+        };
+        ARW_TRACKER_OPTION_SQUARE_LABELING_MODE: {
+            value: number;
+        };
+        ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE: {
+            value: number;
+        };
+        ARW_TRACKER_OPTION_SQUARE_IMAGE_PROC_MODE: {
+            value: number;
+        };
+    };
+    AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX: number;
+    AR_MATRIX_CODE_DETECTION: number;
+    AR_TEMPLATE_MATCHING_COLOR: number;
     constructor();
     init(): Promise<this>;
     private _decorate;
     private converter;
-    loadCamera(urlOrData: any): Promise<number>;
-    loadCameraParam(url: any): Promise<unknown>;
+    loadCameraParam(urlOrData: any): Promise<string>;
+    _ajax(url: string, target: string, that: any): Promise<unknown>;
     private _storeDataFile;
 }
