@@ -21,6 +21,7 @@ for (var j = 2; j < arguments.length; j++) {
 }
 
 var HAVE_NFT = 0;
+var HAVE_2D = 1;
 
 var EMSCRIPTEN_ROOT = process.env.EMSCRIPTEN;
 var ARTOOLKITX_ROOT = process.env.ARTOOLKITX_ROOT || path.resolve(__dirname, "../emscripten/artoolkitX_em_2d");

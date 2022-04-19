@@ -1,2 +1,6 @@
 node_modules
 build/*.bc
+CMakeFiles/*
+CMakeCache.txt
+cmake_install.cmake
+Makefile
