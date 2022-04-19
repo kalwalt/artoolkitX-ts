@@ -197,7 +197,7 @@
               imageData = getImageData(video, width, height);
 
               function tick () {
-                requestAnimationFrame(tick);
+                
                 imageData = getImageData(video, width, height);
                 arController.process(imageData);
                 videoTex.needsUpdate = true;
@@ -207,7 +207,7 @@
                 renderer.render(videoScene, videoCamera);
                 renderer.render(scene, camera);
                 renderer.autoClear = ac;
-                
+                requestAnimationFrame(tick);
               }
               tick()
 
