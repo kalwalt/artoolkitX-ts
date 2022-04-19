@@ -109,13 +109,13 @@ export default class ARToolkitX {
    * - cameraCount
    * - version
    * A message is displayed in the browser console during the intitialization, for example:
-   * "ARToolkitX 0.6.0"
+   * "ARToolkitX 0.7.1"
    */
   constructor () {
     // reference to WASM module
     this.instance
     this.cameraCount = 0
-    this.version = '0.7.0'
+    this.version = '0.7.1'
     console.info('ARToolkitX ', this.version)
   }
 

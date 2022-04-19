@@ -16,21 +16,33 @@ Follow the **Build** instructions if you make changes to the code.
 
 ### Build
 We use webpack as bundler, you need to rebuild the dist lib if you make changes.
-First install all nodejs dependencies:
+If you make changes to the C/C++ Source code you need to build the whole project.
+First of all you need to clone the **artoolkitX_em_2d** submodule:
+`git submodule update --init`
+then run the `configure.sh` script inside the main folder:
+`./configure.sh`
+the script will run cmake and will create the config.h file necessary for the compilation. After this step you can install all nodejs dependencies:
 
 `npm install`
 
-For a development build run:
+You need emsdk 2.0.20 to build the wasm module, check if you have installed with `emcc -v`. So if you have installed it run the command:
+
+`npm run build`
+
+For a development dist build run:
 
 `npm run dev-ts`
 
-For a production-optimized build run:
+For a production-optimized dits build run:
 
 `npm run build-ts`
+
+this will produce ARToolkitX.js dist lib.
 
 ### Future plans
 
 - Add support for 2d markers! (only experimental examples for now!)
-- new build script for the wasm lib.
+- NFT markers
+- improved new build script for the wasm lib.
 - npm package
 - multi pattern marker support.
