@@ -1,5 +1,9 @@
 cmake_minimum_required( VERSION 3.4 )
 
+project("ARtoolkitX-ts")
+
+set(ARTOOLKITX_PATH "../artoolkitx")
+
 set(ARX_VERSION_MAJOR 1)
 set(ARX_VERSION_MINOR 0)
 set(ARX_VERSION_TINY  5)
@@ -19,4 +23,4 @@ set(HAVE_GTSAM 0)
 set(HAVE_OPENCV 0)
 
 # Create ARX/AR/config.h and allow subdirectories to find it.
-configure_file(emscripten/artoolkitX_em_2d/Source/ARX/AR/include/ARX/AR/config.h.in emscripten/artoolkitX_em_2d/Source/ARX/AR/include/ARX/AR/config.h @ONLY)
+configure_file(${ARTOOLKITX_PATH}/Source/ARX/AR/include/ARX/AR/config.h.in ${ARTOOLKITX_PATH}/Source/ARX/AR/include/ARX/AR/config.h @ONLY)
