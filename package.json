@@ -52,7 +52,11 @@
     "dev-ts": "webpack --mode development --progress --watch",
     "docs": "typedoc",
     "build": "node tools/makem.js; echo Built at `date`",
-    "build-ts": "webpack --mode production"
+    "build-cv": "cmake -S emscripten/artoolkitX_em_2d/Source/depends/emscripten/opencv-3.4.1 -B emscripten/artoolkitX_em_2d/Source/depends/emscripten/opencv-3.4.1/build_opencv-em ",
+    "build-cv-w-docker": "docker exec emscripten-artoolkitx-ts npm run build-cv",
+    "build-w-docker": "docker exec emscripten-artoolkitx-ts npm run build",
+    "build-ts": "webpack --mode production",
+    "setup-docker": "docker run -dit --name emscripten-artoolkitx-ts -v $(pwd):/src emscripten/emsdk:2.0.20 bash"
   },
   "license": "LGPL-3.0",
   "dependencies": {
