@@ -159,14 +159,18 @@ function start(markerUrl, video, input_width, input_height, render_update, track
 
   var process = function () {
     context_process.fillStyle = 'black';
-    context_process.fillRect(0, 0, pw, ph);
-    context_process.drawImage(video, 0, 0, vw, vh, ox, oy, w, h);
+    //context_process.fillRect(0, 0, pw, ph);
+    context_process.fillRect(0, 0, vw, vh);
+    //context_process.drawImage(video, 0, 0, vw, vh, ox, oy, w, h);
+    context_process.drawImage(video, 0, 0, vw, vh);
 
-    var imageData = context_process.getImageData(0, 0, pw, ph);
+    //var imageData = context_process.getImageData(0, 0, pw, ph);
+    var imageData = context_process.getImageData(0, 0, vw, vh);
     worker.postMessage({ type: 'process', imagedata: imageData }, [imageData.data.buffer]);
   }
   var tick = function () {
     draw();
+    process();
     requestAnimationFrame(tick);
   };
 

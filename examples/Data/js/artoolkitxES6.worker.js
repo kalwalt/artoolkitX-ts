@@ -8,7 +8,7 @@ self.onmessage = function (e) {
     }
     case 'process': {
       next = msg.imagedata;
-      process();
+      //process();
       return;
     }
   }
@@ -25,12 +25,12 @@ var videoWidth, videoHeight;
 var trackable = {
   trackableType: "2d",
   url: '../../../examples/Data/pinball.jpg',
-  height: 1.0
+  //height: 1.0
 }
 
 function load(msg) {
 
-  ARToolkitX.ARControllerX.init(0, msg.camera_para, msg.pw, msg.ph).then((arController) => {
+  ARToolkitX.ARControllerX.init(0, msg.camera_para, 640, 480).then((arController) => {
     console.log('arController is: ', arController);
 
     arController.addEventListener('getMarker', (trackableInfo) => {
@@ -50,9 +50,15 @@ function load(msg) {
         if (trackable) {
           var trackableId = arController.addTrackable(trackable);
         }
-        setInterval(function () {
+        function tick() {
+          process();
+          requestAnimationFrame(tick);
+        }
+        tick();
+        /*setInterval(function () {
           ar = arController;
-        }, 13)
+        }, 13)*/
+        ar = arController;
       })
       
     } catch (e) {
