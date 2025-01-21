@@ -52,7 +52,10 @@
     "dev-ts": "webpack --mode development --progress --watch",
     "docs": "typedoc",
     "build": "node tools/makem.js; echo Built at `date`",
-    "build-ts": "webpack --mode production"
+    "build-ts": "webpack --mode production",
+    "setup-docker": "docker run -dit --name emscripten-artoolkitx-ts -v $(pwd):/src emscripten/emsdk:3.1.69 bash",
+    "build-docker": "docker exec emscripten-artoolkitx-ts emcmake cmake -B emscripten/artoolkitx.js/build -S emscripten/artoolkitx.js ..",
+    "build-docker-w-make": "docker exec emscripten-artoolkitx-ts emmake make -C emscripten/artoolkitx.js/build"
   },
   "license": "LGPL-3.0",
   "dependencies": {
