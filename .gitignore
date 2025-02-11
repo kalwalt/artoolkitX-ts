@@ -1,6 +1,9 @@
 node_modules
-build/*.bc
+build/*.o
 CMakeFiles/*
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+emscripten/artoolkitx.js/build/*
+emscripten/artoolkitx/*
+opencv-em

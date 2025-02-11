@@ -1,8 +1,11 @@
 // #include <emscripten/bind.h>
+
 #include "ARX/ARX_c.h"
 #include <string>
-#include <time.h>
+#include <ctime>
+#include <iostream>
 #include "ARX/ARController.h"
+//#include <chrono>
 // #include "ARX_c.cpp"
 
 std::string getARToolKitVersion();

@@ -4,8 +4,9 @@
  */
 
 #include "ARX_js.h"
-#include <stdio.h>
-#include "emscripten.h"
+//#include <stdio.h>
+
+//#include "emscripten.h"
 
 #define PIXEL_FORMAT_BUFFER_SIZE 1024
 

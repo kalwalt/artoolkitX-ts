@@ -23,8 +23,23 @@ for (var j = 2; j < arguments.length; j++) {
 var HAVE_NFT = 0;
 var HAVE_2D = 1;
 
+const download_artoolkitx = format(
+    " curl --location 'https://github.com/artoolkitx/artoolkitx/releases/download/1.1.21/artoolkitx-1.1.21-Emscripten.zip' -o artoolkitx.zip \
+        unzip artoolkitx.zip -d emscripten/artoolkitx \
+        rm artoolkitx.zip "
+);
+
+
 var EMSCRIPTEN_ROOT = process.env.EMSCRIPTEN;
-var ARTOOLKITX_ROOT = process.env.ARTOOLKITX_ROOT || path.resolve(__dirname, "../emscripten/artoolkitX_em_2d");
+var ARTOOLKITX_ROOT = process.env.ARTOOLKITX_ROOT || path.resolve(__dirname, "../emscripten/artoolkitx/artoolkitX");
+
+if (!fs.existsSync(path.resolve(ARTOOLKITX_ROOT, "SDK/include/ARX/AR/config.h"))) {
+    console.log("Downloading ARToolKitX");
+    
+    exec(download_artoolkitx, function (error) {
+        console.error(error);
+    });
+}
 
 if (!EMSCRIPTEN_ROOT) {
     console.log("\nWarning: EMSCRIPTEN environment variable not found.")
@@ -42,11 +57,11 @@ var OUTPUT_PATH = path.resolve(__dirname, '../build/') + '/';
 
 var BUILD_WASM_ES6_FILE = "artoolkitxES6.js";
 
-if (!fs.existsSync(path.resolve(ARTOOLKITX_ROOT, "Source/ARX/AR/include/ARX/AR/config.h"))) {
+if (!fs.existsSync(path.resolve(ARTOOLKITX_ROOT, "SDK/include/ARX/AR/config.h"))) {
     console.log("Renaming and moving config.h.in to config.h");
     fs.copyFileSync(
-        path.resolve(ARTOOLKITX_ROOT, "Source/ARX/AR/include/ARX/AR/config.h.in"),
-        path.resolve(ARTOOLKITX_ROOT, "Source/ARX/AR/include/ARX/AR/config.h")
+        path.resolve(ARTOOLKITX_ROOT, "SDK/include/ARX/AR/config.h.in"),
+        path.resolve(ARTOOLKITX_ROOT, "SDK/include/ARX/AR/config.h")
     );
     console.log("Done!");
 }
@@ -55,14 +70,14 @@ var artoolkitxjs_sources = [
     "ARX_js.cpp",
     "ARX_bindings.cpp"
 ].map(function (src) {
-    return path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/artoolkitx.js/', src);
+    return path.resolve(__dirname, SOURCE_PATH + '/artoolkitx.js/', src);
 });
 
 var arx_sources = [
     'ARX_c.cpp',
     'ARController.cpp',
     'ARTrackable.cpp',
-    'ARPattern.cpp',
+    //'ARPattern.cpp',
     'ARTrackableMultiSquare.cpp',
     'ARTrackableMultiSquareAuto.cpp',
     'ARTrackableNFT.cpp',
@@ -215,10 +230,10 @@ var arutil_sources = [
     'time.c',
     'file_utils.c',
     'image_utils.cpp',
-    'crypt.c',
-    'ioapi.c',
-    'unzip.c',
-    'zip.c'
+    //'crypt.c',
+    //'ioapi.c',
+    //'unzip.c',
+    //'zip.c'
 ].map(function (src) {
     return path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/ARUtil', src);
 });
@@ -234,7 +249,7 @@ var arvideo_sources = [
     'videoSaveImage.c',
     'Dummy/videoDummy.c',
     'Image/videoImage.c',
-    'Web/videoWeb.c'
+    'Emscripten/videoEmscripten.c'
 ].map(function (src) {
     return path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/ARVideo', src);
 });
@@ -263,25 +278,28 @@ FLAGS += ' -Wno-warn-absolute-paths ';
 FLAGS += ' -s TOTAL_MEMORY=' + MEM + ' ';
 FLAGS += ' -s USE_ZLIB=1';
 FLAGS += ' -s USE_LIBJPEG=1';
-FLAGS += ' --memory-init-file 0 '; // for memless file
+//FLAGS += ' --memory-init-file 0 '; // for memless file
 FLAGS += ' -s ALLOW_MEMORY_GROWTH=1';
 FLAGS += ' --bind ';
-FLAGS += ' --llvm-lto 1 -s INVOKE_RUN=0 -msse -msse2 -msse3 -mssse3 -msimd128 '
+FLAGS += ' -msse -msse2 -msse3 -mssse3 -msimd128 '
+FLAGS += ' -fwasm-exceptions -mbulk-memory -mnontrapping-fptoint -msse4.2 -sWASM_BIGINT -sSUPPORT_LONGJMP=wasm '
 
 var PROJECT_SOURCE_DIR = path.resolve( ARTOOLKITX_ROOT + '/Source');
 
 var EXPORT_FUNCTIONS = " -s EXPORTED_FUNCTIONS='['_arwUpdateAR', '_arwCapture', '_arwGetProjectionMatrix', '_arwQueryTrackableVisibilityAndTransformation', '_arwGetTrackablePatternConfig', '_arwGetTrackablePatternImage', '_arwLoadOpticalParams']' ";
 var EXPORTED_RUNTIME_FUNCTIONS = " -s EXPORTED_RUNTIME_METHODS='['ccall', 'cwrap', 'FS', 'setValue']' ";
 var WASM_FLAGS_SINGLE_FILE = " -s SINGLE_FILE=1 ";
-var ES6_FLAGS = " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s EXPORT_NAME='artoolkitX' -s MODULARIZE=1 ";
-var POST_FLAGS = " --post-js " + PROJECT_SOURCE_DIR + "/artoolkitx.js/ARX_additions.js ";
+var ES6_FLAGS = " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s EXPORT_NAME='artoolkitX' -s MODULARIZE=1 -sENVIRONMENT=web,worker ";
+var POST_FLAGS = " --post-js " + SOURCE_PATH + "/artoolkitx.js/ARX_additions.js ";
 /*var ASSERTIONS_FLAGS = ' -s ASSERTIONS=1 ';
 FLAGS += ASSERTIONS_FLAGS;
 FLAGS += ' -s DISABLE_EXCEPTION_CATCHING=0 ';*/
 
 var INCLUDES = [
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/AR/include/'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/ARUtil/include/'),
+    //path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/AR/include/'),
+    //path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/ARUtil/include/'),
+    path.resolve(__dirname, ARTOOLKITX_ROOT + '/SDK/include/'),
+    //path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/ARUtil/include/'),
     OUTPUT_PATH,
     SOURCE_PATH,
 ].map(function (s) { return '-I' + s }).join(' ');
@@ -304,7 +322,7 @@ var INCLUDES_ARG = [
 
 var INCLUDES_ARUTIL = [
     path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/ARX/ARUtil/include/'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/include/'),
+    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/common/include/'),
 ].map(function (s) { return '-I' + s }).join(' ');
 
 var INCLUDES_ARVIDEO = [
@@ -318,38 +336,44 @@ var INCLUDES_OCVT = [
 ].map(function (s) { return '-I' + s }).join(' ');
 
 var INCLUDES_OPENCV = [
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/opencv-3.4.1/'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/opencv-3.4.1/modules/core/include/'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/opencv-3.4.1/modules/highgui/include/'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/opencv-3.4.1/modules/imgcodecs/include/'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/opencv-3.4.1/modules/videoio/include/'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/opencv-3.4.1/modules/imgproc/include/'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/opencv-3.4.1/modules/calib3d/include/'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/opencv-3.4.1/modules/features2d/include/'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/opencv-3.4.1/modules/flann/include/'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/opencv-3.4.1/modules/video/include/'),
+    path.resolve(__dirname,  '../opencv-em/build_opencv/'),
+    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/'),
+    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/include/'),
+    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/modules/core/include'),
+    //path.resolve(__dirname, ARTOOLKITX_ROOT + '/opencv-em/build_opencv/libs/opencv/modules/highgui/include/'),
+    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/modules/imgcodecs/include/'),
+    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/modules/videoio/include/'),
+    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/modules/imgproc/include/'),
+    path.resolve(__dirname,   '../opencv-em/build_opencv/libs/opencv/modules/calib3d/include/'),
+    path.resolve(__dirname,   '../opencv-em/build_opencv/libs/opencv/modules/features2d/include/'),
+    path.resolve(__dirname,   '../opencv-em/build_opencv/libs/opencv/modules/flann/include/'),
+    path.resolve(__dirname,   '../opencv-em/build_opencv/libs/opencv/modules/video/include/'),
 ].map(function (s) { return '-I' + s }).join(' ');
 
 var OPENCV_LIBS = [
-	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_calib3d.a'),
-	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_core.a'),
-	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_features2d.a'),
-	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_flann.a'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_highgui.a'),
-	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_imgcodecs.a'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_imgproc.a'),
-	path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_video.a'),
-    path.resolve(__dirname, ARTOOLKITX_ROOT + '/Source/depends/emscripten/build_opencv-em/lib/libopencv_videoio.a'),
+	path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_calib3d.a'),
+	path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_core.a'),
+	path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_features2d.a'),
+	path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_flann.a'),
+    //path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_highgui.a'),
+	//path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_imgcodecs.a'),
+    path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_imgproc.a'),
+	path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_video.a'),
+    //path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_videoio.a'),
 ].map(function(s) { return ' ' + s }).join(' ');
 
 var ALL_BC = [
-    path.resolve(OUTPUT_PATH + '/libarx.bc'),
-    path.resolve(OUTPUT_PATH + '/libar.bc'),
-    path.resolve(OUTPUT_PATH + '/libar2.bc'),
-    path.resolve(OUTPUT_PATH + '/libarg.bc'),
-    path.resolve(__dirname, OUTPUT_PATH + '/libarutil.bc'),
-    path.resolve(__dirname, OUTPUT_PATH + '/libarvideo.bc'),
-    path.resolve(__dirname, OUTPUT_PATH + '/libocvt.bc')
+    path.resolve(OUTPUT_PATH + '/libarx.o'),
+    path.resolve(OUTPUT_PATH + '/libar.o'),
+    path.resolve(OUTPUT_PATH + '/libar2.o'),
+    //path.resolve(OUTPUT_PATH + '/libarg.bc'),
+    path.resolve(__dirname, OUTPUT_PATH + '/libarutil.o'),
+    path.resolve(__dirname, OUTPUT_PATH + '/libarvideo.o'),
+    path.resolve(__dirname, OUTPUT_PATH + '/libocvt.o')
+].map(function (s) { return s }).join(' ');
+
+const ARTOOLKITX_LIBS = [
+    path.resolve(__dirname, ARTOOLKITX_ROOT + '/SDK/lib/libARX.a'),
 ].map(function (s) { return s }).join(' ');
 
 function format(str) {
@@ -382,47 +406,49 @@ function clean_builds() {
     catch (e) { return console.log(e); }
 }
 
+
+
 var compile_arlib = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_AR + ' ' + INCLUDES_OPENCV + ' ' + INCLUDES_OCVT + ' ' + ar_sources.join(' ')
-    + FLAGS + ' ' + DEFINES + ' -DNDEBUG ' + ' -r -o {OUTPUT_PATH}libar.bc ',
+    + FLAGS + ' ' + DEFINES + ' -DNDEBUG ' + ' -r -o {OUTPUT_PATH}libar.o ',
     OUTPUT_PATH);
 
 var compile_ar2lib = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_AR2 + ' ' + ar2_sources.join(' ')
-    + FLAGS + ' ' + DEFINES + ' -r -o {OUTPUT_PATH}libar2.bc ',
+    + FLAGS + ' ' + DEFINES + ' -r -o {OUTPUT_PATH}libar2.o ',
     OUTPUT_PATH);
 
 var compile_arglib = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_ARG + ' ' + arg_sources.join(' ')
-    + FLAGS + ' ' + DEFINES + ' -r -o {OUTPUT_PATH}libarg.bc ',
+    + FLAGS + ' ' + DEFINES + ' -r -o {OUTPUT_PATH}libarg.o ',
     OUTPUT_PATH);
 
 var compile_arutillib = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_ARUTIL + ' ' + arutil_sources.join(' ')
-    + FLAGS + ' ' + DEFINES + ' -r -o {OUTPUT_PATH}libarutil.bc ',
+    + FLAGS + ' ' + DEFINES + ' -r -o {OUTPUT_PATH}libarutil.o ',
     OUTPUT_PATH);
 
 var compile_arvideolib = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_ARVIDEO + ' ' + arvideo_sources.join(' ')
-    + FLAGS + ' ' + DEFINES + ARVIDEO_DEFINES + ' -r -o {OUTPUT_PATH}libarvideo.bc ',
+    + FLAGS + ' ' + DEFINES + ARVIDEO_DEFINES + ' -r -o {OUTPUT_PATH}libarvideo.o ',
     OUTPUT_PATH);
 
 var compile_ocvtlib = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_OCVT + ' ' + INCLUDES_OPENCV + ' ' + ocvt_sources.join(' ')
-    + FLAGS + ' ' + DEFINES + ' -r -o {OUTPUT_PATH}libocvt.bc ',
+    + FLAGS + ' ' + DEFINES + ' -r -o {OUTPUT_PATH}libocvt.o ',
     OUTPUT_PATH);
 
 var compile_arxlib = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_ARX + ' ' + INCLUDES_AR2 + ' ' + INCLUDES_ARG + ' '
     + INCLUDES_ARUTIL + ' ' + INCLUDES_ARVIDEO + ' ' + INCLUDES_OCVT + ' '
     + INCLUDES_OPENCV + ' ' + arx_sources.join(' ')
-    + FLAGS + ' ' + DEFINES + ' -r -o {OUTPUT_PATH}libarx.bc ',
+    + FLAGS + ' ' + DEFINES + ' -r -o {OUTPUT_PATH}libarx.o ',
     OUTPUT_PATH);
 
 var compile_wasm_es6 = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_ARX + ' ' + INCLUDES_AR2 + ' ' + INCLUDES_ARG + ' '
     + INCLUDES_ARUTIL + ' ' + INCLUDES_ARVIDEO + ' ' + INCLUDES_OCVT + ' '
-    + INCLUDES_OPENCV + ' ' + artoolkitxjs_sources.join(' ') + ' ' + ALL_BC + ' ' +  OPENCV_LIBS
+    + INCLUDES_OPENCV + ' ' + ARTOOLKITX_LIBS + ' ' +  OPENCV_LIBS + ' ' + artoolkitxjs_sources.join(' ') + ' '
     + FLAGS + ' ' + DEFINES + ES6_FLAGS + WASM_FLAGS_SINGLE_FILE
     + EXPORT_FUNCTIONS + EXPORTED_RUNTIME_FUNCTIONS  + POST_FLAGS
     + " -o {OUTPUT_PATH}{BUILD_WASM_ES6_FILE} ",
@@ -468,13 +494,13 @@ function addJob(job) {
 }
 
 addJob(clean_builds);
-addJob(compile_arlib);
-addJob(compile_ar2lib);
-addJob(compile_arglib);
-addJob(compile_arutillib);
-addJob(compile_arvideolib);
-addJob(compile_ocvtlib);
-addJob(compile_arxlib);
+//addJob(compile_arlib);
+//addJob(compile_ar2lib);
+//addJob(compile_arglib);
+//addJob(compile_arutillib);
+//addJob(compile_arvideolib);
+//addJob(compile_ocvtlib);
+//addJob(compile_arxlib);
 addJob(compile_wasm_es6);
 
 runJob();
