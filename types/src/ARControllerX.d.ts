@@ -56,7 +56,7 @@ export default class ARControllerX {
     process(image: ImageObj): Promise<void>;
     _processImage(image: ImageObj): void;
     private _prepareImage;
-    getCameraProjMatrix(nearPlane?: number, farPlane?: number): Float32Array;
+    getCameraProjMatrix(nearPlane?: number, farPlane?: number): Float32Array<ArrayBufferLike>;
     addTrackable(trackableObj: ITrackableObj): Promise<number>;
     addEventListener(name: string, callback: object): void;
     removeEventListener(name: string, callback: object): void;
@@ -65,10 +65,10 @@ export default class ARControllerX {
         target: any;
         data?: object;
     }): void;
-    transMatToGLMat(transMat: Float64Array, glMat: Float64Array, scale?: number): Float64Array;
-    arglCameraViewRHf(glMatrix: Float32Array, glRhMatrix?: Float32Array, scale?: number): Float32Array;
-    getTransformationMatrix(): Float64Array;
-    getCameraMatrix(): Float32Array;
+    transMatToGLMat(transMat: Float64Array, glMat: Float64Array, scale?: number): Float64Array<ArrayBufferLike>;
+    arglCameraViewRHf(glMatrix: Float32Array, glRhMatrix?: Float32Array, scale?: number): Float32Array<ArrayBufferLike>;
+    getTransformationMatrix(): Float64Array<ArrayBufferLike>;
+    getCameraMatrix(): Float32Array<ArrayBufferLike>;
     setLogLevel(mode: boolean): number;
     getLogLevel(): number;
     setThresholdMode(mode: number): void;

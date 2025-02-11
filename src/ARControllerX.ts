@@ -284,7 +284,9 @@ export default class ARControllerX {
 
       if (success >= 0) {
         console.info(' artoolkitX-ts started')
-        success = this.artoolkitX.pushVideoInit(0, this.videoWidth, this.videoHeight, 'RGBA', 0, 0)
+        // @ts-ignore
+        this.artoolkitX.instance.capture()
+        //success = this.artoolkitX.pushVideoInit(0, this.videoWidth, this.videoHeight, 'RGBA', 0, 0)
         if (success < 0) {
           throw new Error('Error while starting')
         }
@@ -335,7 +337,9 @@ export default class ARControllerX {
 
   public _processImage(image: ImageObj) {
     try {
-      this._prepareImage(image)
+      //@ts-ignore
+      this.artoolkitX.instance.updatetexture32(image)
+      //this._prepareImage(image)
       const success = this.artoolkitX._arwUpdateAR()
       if (success >= 0) {
         this.trackables.forEach((trackable) => {      
@@ -411,12 +415,12 @@ export default class ARControllerX {
      const params: delegateMethods['videoMalloc'] = this.artoolkitX.instance.videoMalloc;
      
      // Copy luma image
-     const videoFrameLumaBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer, params.lumaFramePointer, params.framesize / 4)
+     const videoFrameLumaBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer.buffer, params.lumaFramePointer, params.framesize / 4)
      videoFrameLumaBytes.set(this.videoLuma)
      //this.videoLuma = videoLuma
  
      // Copy image data into HEAP. HEAP was prepared during videoWeb.c::ar2VideoPushInitWeb()
-     const videoFrameBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer, params.framepointer, params.framesize)
+     const videoFrameBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer.buffer, params.framepointer, params.framesize)
      videoFrameBytes.set(data)
      this.framesize = params.framesize
  
@@ -454,11 +458,12 @@ export default class ARControllerX {
   public getCameraProjMatrix(nearPlane = 0.1, farPlane = 1000) {
     const cameraMatrixElements = 16
     const numBytes: number = cameraMatrixElements * Float32Array.BYTES_PER_ELEMENT
-    this._projectionMatPtr = this.artoolkitX._malloc(numBytes)
+    //@ts-ignore
+    this._projectionMatPtr = this.artoolkitX.instance._malloc(numBytes)
     // Call compiled C-function directly using '_' notation
     // https://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-direct-function-calls
     const cameraMatrix = this.artoolkitX._arwGetProjectionMatrix(nearPlane, farPlane, this._projectionMatPtr)
-    this.camera_mat = new Float32Array(this.artoolkitX.instance.HEAPU8.buffer, this._projectionMatPtr, cameraMatrixElements)
+    this.camera_mat = new Float32Array(this.artoolkitX.instance.HEAPU8.buffer.buffer, this._projectionMatPtr, cameraMatrixElements)
     if (cameraMatrix) {
       return this.camera_mat
     }
@@ -969,7 +974,7 @@ export default class ARControllerX {
     // Call compiled C-function directly using '_' notation
     // https://kripken.github.io/emscripten-site/docs/porting/connecting_cpp_and_javascript/Interacting-with-code.html#interacting-with-code-direct-function-calls
     const transformation = this.artoolkitX._arwQueryTrackableVisibilityAndTransformation(trackableId, this._transMatPtr)
-    const matrix = new Float32Array(this.artoolkitX.instance.HEAPU8.buffer, this._transMatPtr, transformationMatrixElements)
+    const matrix = new Float32Array(this.artoolkitX.instance.HEAPU8.buffer.buffer, this._transMatPtr, transformationMatrixElements)
     if (transformation) {
       return matrix
     }

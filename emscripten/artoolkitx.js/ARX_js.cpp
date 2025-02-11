@@ -33,8 +33,8 @@ int addTrackable(std::string cfg) {
      * @see                 arwStopRunning()
      */
     bool arwStartRunningJS(std::string cparaName, int width, int height) {
-        char buffer [50];
-        sprintf(buffer,"-module=Web -width=%d -height=%d", width, height);
+        char buffer [60];
+        sprintf(buffer,"-module=Emscripten -width=%d -height=%d -format=RGBA", width, height);
         int ret;
 
         if( cparaName.empty()) {
@@ -47,9 +47,15 @@ int addTrackable(std::string cfg) {
         return ret;
     }
 
-    /*int pushVideoInit(int videoSourceIndex, int width, int height, std::string pixelFormat, int camera_index, int camera_face){
-        return arwVideoPushInitWeb(videoSourceIndex, width, height, pixelFormat.c_str(), camera_index, camera_face);
-    }*/
+    int pushVideoInit(int videoSourceIndex, int width, int height, std::string pixelFormat, int camera_index, int camera_face){
+        return arwVideoPushInit(videoSourceIndex, width, height, pixelFormat.c_str(), camera_index, camera_face);
+    }
+
+    bool updateTexture32(emscripten::val buffer) {
+        auto u8 = emscripten::convertJSArrayToNumberVector<uint8_t>(buffer);
+        return arwUpdateTexture32(reinterpret_cast<uint32_t*>(u8.data()));
+    }
+
 
 
 VideoParams getVideoParams() {

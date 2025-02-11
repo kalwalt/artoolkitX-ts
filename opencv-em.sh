@@ -5,7 +5,7 @@ if [ ! -d "opencv-em/include/opencv2" ] ; then
         rm opencv2.zip
 fi
 
-if [ true ] ; then
+if [ ! -d "emscripten/artoolkitx/artoolkitX/SDK/include/ARX/AR/config.h" ] ; then
         curl --location 'https://github.com/artoolkitx/artoolkitx/releases/download/1.1.21/artoolkitx-1.1.21-Emscripten.zip' -o artoolkitx.zip
         unzip artoolkitx.zip -d emscripten/artoolkitx
         rm artoolkitx.zip

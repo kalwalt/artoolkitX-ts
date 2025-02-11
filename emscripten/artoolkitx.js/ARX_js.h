@@ -1,5 +1,5 @@
-// #include <emscripten/bind.h>
-
+#include <emscripten.h>
+#include <emscripten/val.h>
 #include "ARX/ARX_c.h"
 #include <string>
 #include <ctime>
@@ -11,7 +11,9 @@
 std::string getARToolKitVersion();
 int addTrackable(std::string cfg);
 bool arwStartRunningJS(std::string cparaName, int width, int height);
-//int pushVideoInit(int videoSourceIndex, int width, int height, std::string pixelFormat, int camera_index, int camera_face);
+int pushVideoInit(int videoSourceIndex, int width, int height, std::string pixelFormat, int camera_index, int camera_face);
+
+bool updateTexture32(emscripten::val buffer);
 
 struct VideoParams {
     int width;

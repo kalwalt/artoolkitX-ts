@@ -23,23 +23,9 @@ for (var j = 2; j < arguments.length; j++) {
 var HAVE_NFT = 0;
 var HAVE_2D = 1;
 
-const download_artoolkitx = format(
-    " curl --location 'https://github.com/artoolkitx/artoolkitx/releases/download/1.1.21/artoolkitx-1.1.21-Emscripten.zip' -o artoolkitx.zip \
-        unzip artoolkitx.zip -d emscripten/artoolkitx \
-        rm artoolkitx.zip "
-);
-
 
 var EMSCRIPTEN_ROOT = process.env.EMSCRIPTEN;
 var ARTOOLKITX_ROOT = process.env.ARTOOLKITX_ROOT || path.resolve(__dirname, "../emscripten/artoolkitx/artoolkitX");
-
-if (!fs.existsSync(path.resolve(ARTOOLKITX_ROOT, "SDK/include/ARX/AR/config.h"))) {
-    console.log("Downloading ARToolKitX");
-    
-    exec(download_artoolkitx, function (error) {
-        console.error(error);
-    });
-}
 
 if (!EMSCRIPTEN_ROOT) {
     console.log("\nWarning: EMSCRIPTEN environment variable not found.")
@@ -286,7 +272,7 @@ FLAGS += ' -fwasm-exceptions -mbulk-memory -mnontrapping-fptoint -msse4.2 -sWASM
 
 var PROJECT_SOURCE_DIR = path.resolve( ARTOOLKITX_ROOT + '/Source');
 
-var EXPORT_FUNCTIONS = " -s EXPORTED_FUNCTIONS='['_arwUpdateAR', '_arwCapture', '_arwGetProjectionMatrix', '_arwQueryTrackableVisibilityAndTransformation', '_arwGetTrackablePatternConfig', '_arwGetTrackablePatternImage', '_arwLoadOpticalParams']' ";
+var EXPORT_FUNCTIONS = " -s EXPORTED_FUNCTIONS='['_arwUpdateAR', '_arwCapture', '_arwGetProjectionMatrix', '_arwQueryTrackableVisibilityAndTransformation', '_arwGetTrackablePatternConfig', '_arwGetTrackablePatternImage', '_arwLoadOpticalParams', '_malloc', '_free']' ";
 var EXPORTED_RUNTIME_FUNCTIONS = " -s EXPORTED_RUNTIME_METHODS='['ccall', 'cwrap', 'FS', 'setValue']' ";
 var WASM_FLAGS_SINGLE_FILE = " -s SINGLE_FILE=1 ";
 var ES6_FLAGS = " -s EXPORT_ES6=1 -s USE_ES6_IMPORT_META=0 -s EXPORT_NAME='artoolkitX' -s MODULARIZE=1 -sENVIRONMENT=web,worker ";
