@@ -3,7 +3,7 @@ interface ImageObj {
     width: number;
     videoHeight: number;
     height: number;
-    data: Uint8ClampedArray;
+    data: Uint8ClampedArray<any>;
 }
 interface ITrackableObj {
     width: number;

@@ -46,13 +46,13 @@ interface ImageObj {
   width: number,
   videoHeight: number,
   height: number,
-  data: Uint8ClampedArray,
+  data: Uint8ClampedArray<any>,
 }
 
 interface ITrackable {
   trackableId: number;
-  transformation: Float32Array;
-  arCameraViewRH?: Float32Array;
+  transformation: Float32Array<any>;
+  arCameraViewRH?: Float32Array<any>;
   visible?: boolean;
   scale?: number;
 }
@@ -338,7 +338,7 @@ export default class ARControllerX {
   public _processImage(image: ImageObj) {
     try {
       //@ts-ignore
-      this.artoolkitX.instance.updatetexture32(image)
+      this.artoolkitX.instance.updateTexture32(image)
       //this._prepareImage(image)
       const success = this.artoolkitX._arwUpdateAR()
       if (success >= 0) {
