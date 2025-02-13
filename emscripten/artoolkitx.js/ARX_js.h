@@ -5,14 +5,13 @@
 #include <ctime>
 #include <iostream>
 #include "ARX/ARController.h"
-//#include <chrono>
-// #include "ARX_c.cpp"
+
 
 std::string getARToolKitVersion();
 int addTrackable(std::string cfg);
 bool arwStartRunningJS(std::string cparaName, int width, int height);
 int pushVideoInit(int videoSourceIndex, int width, int height, std::string pixelFormat, int camera_index, int camera_face);
-
+int pushVideo(int videoSourceIndex, emscripten::val buff, int width, int height);
 bool updateTexture32(emscripten::val buffer);
 
 struct VideoParams {

@@ -56,6 +56,7 @@ EMSCRIPTEN_BINDINGS(constant_bindings) {
   function("getARToolKitVersion", &getARToolKitVersion);
   function("arwStartRunningJS", &arwStartRunningJS);
   function("pushVideoInit", &pushVideoInit);
+  function("pushVideo", &pushVideo);
   function("getError", &arwGetError);
 
   function("isRunning", &arwIsRunning);

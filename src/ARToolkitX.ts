@@ -200,6 +200,7 @@ export default class ARToolkitX {
       'shutdownAR',
       'stopRunning',
       'updateAR',
+      'updateTexture32',
 
       'videoMalloc',
 

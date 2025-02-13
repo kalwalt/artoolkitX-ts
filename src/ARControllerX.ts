@@ -93,6 +93,7 @@ interface delegateMethods {
       writeFile: (target: string, data: Uint8Array, { }: object) => void;
     };
     setValue: (pointer: number, a: number, type: string) => void;
+    updateTexture32: (data: Uint8ClampedArray<any>) => void;
   }
   loadCameraParam: (cameraParam: string) => Promise<string>;
   arwStartRunningJS: (arCameraURL: string, width: number, height: number) => number;
@@ -285,12 +286,13 @@ export default class ARControllerX {
       if (success >= 0) {
         console.info(' artoolkitX-ts started')
         // @ts-ignore
-        this.artoolkitX.instance.capture()
+        //success = this.artoolkitX.instance.capture()
         //success = this.artoolkitX.pushVideoInit(0, this.videoWidth, this.videoHeight, 'RGBA', 0, 0)
         if (success < 0) {
-          throw new Error('Error while starting')
+          throw new Error('Error while starting pushVideoInit')
         }
-      } else { throw new Error('Error while starting') }
+      } else {
+        throw new Error('Error while starting') }
     } else {
       throw new Error('Error while starting')
     }
@@ -337,13 +339,16 @@ export default class ARControllerX {
 
   public _processImage(image: ImageObj) {
     try {
+      this.artoolkitX._arwCapture()
       //@ts-ignore
-      this.artoolkitX.instance.updateTexture32(image)
+      this.artoolkitX.instance.pushVideo(0, image.data.buffer, image.width, image.height)
+      //this.artoolkitX.instance.updateTexture32(image.data)
+      this.artoolkitX._arwCapture()
       //this._prepareImage(image)
       const success = this.artoolkitX._arwUpdateAR()
       if (success >= 0) {
-        this.trackables.forEach((trackable) => {      
-          const transformation = this._queryTrackableVisibility(trackable.trackableId)   
+        this.trackables.forEach((trackable) => {
+          const transformation = this._queryTrackableVisibility(trackable.trackableId)
           if (transformation) {
             trackable.transformation = transformation
             trackable.arCameraViewRH = this.arglCameraViewRHf(transformation)
