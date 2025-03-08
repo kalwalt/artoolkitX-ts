@@ -21,43 +21,54 @@ int addTrackable(std::string cfg) {
     return arwAddTrackable(cfg.c_str());
 }
 
-    /**
-     * Initialises and starts video capture.
-     * 
-     * @param cparamName    The URL to the camera parameter file. NULL if none required or if using an image as input
-     * @param width         The width of the video frame/image to process
-     * @param height        The height of the video frame/image to process
-     * @return              true if successful, false if an error occurred
-     * @see                 arwStopRunning()
-     */
-    bool arwStartRunningJS(std::string cparaName, int width, int height) {
-        char buffer [60];
-        sprintf(buffer,"-module=Emscripten -width=%d -height=%d -format=RGBA", width, height);
-        int ret;
+/**
+ * Initialises and starts video capture.
+ * 
+ * @param cparamName    The URL to the camera parameter file. NULL if none required or if using an image as input
+ * @param width         The width of the video frame/image to process
+ * @param height        The height of the video frame/image to process
+ * @return              true if successful, false if an error occurred
+ * @see                 arwStopRunning()
+ */
+bool arwStartRunningJS(std::string cparaName, int width, int height) {
+    char buffer [60];
+    sprintf(buffer,"-module=Emscripten -width=%d -height=%d -format=RGBA", width, height);
+    int ret;
 
-        if( cparaName.empty()) {
-            ret = arwStartRunning(buffer, nullptr);
-        }
-        else {
-            ret = arwStartRunning(buffer, cparaName.c_str());
-        }
-
-        return ret;
+    if( cparaName.empty()) {
+        ret = arwStartRunning(buffer, nullptr);
+    }
+    else {
+        ret = arwStartRunning(buffer, cparaName.c_str());
     }
 
-    int pushVideoInit(int videoSourceIndex, int width, int height, std::string pixelFormat, int camera_index, int camera_face){
-        return arwVideoPushInit(videoSourceIndex, width, height, pixelFormat.c_str(), camera_index, camera_face);
-    }
-
-    int pushVideo(int videoSourceIndex, emscripten::val buff, int width, int height) {
-        auto u8 = emscripten::convertJSArrayToNumberVector<uint8_t>(buff);
-
-        return arwVideoPush(videoSourceIndex, u8.data(), u8.size(), width, height, nullptr, 0, 0, 0, nullptr, 0, 0, 0, nullptr, 0, 0, 0, nullptr, nullptr);
+    return ret;
 }
-    bool updateTexture32(emscripten::val buffer) {
-        auto u8 = emscripten::convertJSArrayToNumberVector<uint8_t>(buffer);
-        return arwUpdateTexture32(reinterpret_cast<uint32_t*>(u8.data()));
+
+int pushVideoInit(int videoSourceIndex, int width, int height, std::string pixelFormat, int camera_index, int camera_face){
+    return arwVideoPushInit(videoSourceIndex, width, height, pixelFormat.c_str(), camera_index, AR_VIDEO_POSITION_UNKNOWN);
+}
+
+// Define the callback function
+void videoPushReleaseCallback(void* userdata) {
+    // Fill a pointer from userdata
+    if (userdata) {
+        int* frameProcessed = static_cast<int*>(userdata);
+        *frameProcessed = 1; // Indicate that the frame has been processed
     }
+}
+
+int pushVideo(int videoSourceIndex, emscripten::val buff, int width, int height) {
+    auto u8 = emscripten::convertJSArrayToNumberVector<uint8_t>(buff);
+    int frameProcessed = 0;
+
+    return arwVideoPush(videoSourceIndex, u8.data(), u8.size(), width, height, nullptr, 0, 0, 0, nullptr, 0, 0, 0, nullptr, 0, 0, 0, videoPushReleaseCallback, &frameProcessed);
+}
+
+bool updateTexture32(emscripten::val buffer) {
+    auto u8 = emscripten::convertJSArrayToNumberVector<uint8_t>(buffer);
+    return arwUpdateTexture32(reinterpret_cast<uint32_t*>(u8.data()));
+}
 
 VideoParams getVideoParams() {
     int w, h, ps;

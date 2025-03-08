@@ -267,6 +267,7 @@ FLAGS += ' -s USE_LIBJPEG=1';
 //FLAGS += ' --memory-init-file 0 '; // for memless file
 FLAGS += ' -s ALLOW_MEMORY_GROWTH=1';
 FLAGS += ' --bind ';
+//FLAGS += ' -s USE_PTHREADS=1 ';
 FLAGS += ' -msse -msse2 -msse3 -mssse3 -msimd128 '
 FLAGS += ' -fwasm-exceptions -mbulk-memory -mnontrapping-fptoint -msse4.2 -sWASM_BIGINT -sSUPPORT_LONGJMP=wasm '
 

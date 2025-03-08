@@ -35,7 +35,7 @@
  */
 import ARToolkitX from './ARToolkitX'
 import Utils from './ARXUtils'
- 
+
 interface Options {
   canvas: null,
   orientation: string,
@@ -116,6 +116,7 @@ interface delegateMethods {
   _arwQueryTrackableVisibilityAndTransformation: (id: number, pointer: number) => Float32Array;
   setValue: (pointer: number, a: number, type: string) => void;
   _arwCapture: () => number;
+  isRunning: () => boolean;
   stopRunning: () => void;
   shutdownAR: () => void;
   addTrackable: (config: string) => number;
@@ -124,13 +125,13 @@ interface delegateMethods {
   setTrackerOptionFloat: (value: number, mode: number) => void;
   getTrackerOptionFloat: (value: number) => number;
   TrackableOptions: {
-    ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: { value: number};
-    ARW_TRACKER_OPTION_SQUARE_THRESHOLD:  { value: number};
-    ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE: { value: number};
-    ARW_TRACKER_OPTION_SQUARE_MATRIX_CODE_TYPE: { value: number};
-    ARW_TRACKER_OPTION_SQUARE_LABELING_MODE: { value: number};
-    ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE: { value: number};
-    ARW_TRACKER_OPTION_SQUARE_IMAGE_PROC_MODE:  { value: number};
+    ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE: { value: number };
+    ARW_TRACKER_OPTION_SQUARE_THRESHOLD: { value: number };
+    ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE: { value: number };
+    ARW_TRACKER_OPTION_SQUARE_MATRIX_CODE_TYPE: { value: number };
+    ARW_TRACKER_OPTION_SQUARE_LABELING_MODE: { value: number };
+    ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE: { value: number };
+    ARW_TRACKER_OPTION_SQUARE_IMAGE_PROC_MODE: { value: number };
   }
   AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX: number;
   AR_MATRIX_CODE_DETECTION: number;
@@ -281,18 +282,22 @@ export default class ARControllerX {
         }
       }
       success = this.artoolkitX.arwStartRunningJS(arCameraURL, this.videoWidth, this.videoHeight)
+      //success = this.artoolkitX.pushVideoInit(0, this.videoWidth, this.videoHeight, 'RGBA', 0, 0)
       console.log(success);
 
       if (success >= 0) {
         console.info(' artoolkitX-ts started')
         // @ts-ignore
         //success = this.artoolkitX.instance.capture()
-        //success = this.artoolkitX.pushVideoInit(0, this.videoWidth, this.videoHeight, 'RGBA', 0, 0)
+        let ret = this.artoolkitX.pushVideoInit(0, this.videoWidth, this.videoHeight, 'RGBA', 0, 0)
+        //console.log("ret", ret);
+
         if (success < 0) {
           throw new Error('Error while starting pushVideoInit')
         }
       } else {
-        throw new Error('Error while starting') }
+        throw new Error('Error while starting')
+      }
     } else {
       throw new Error('Error while starting')
     }
@@ -339,34 +344,37 @@ export default class ARControllerX {
 
   public _processImage(image: ImageObj) {
     try {
-      this.artoolkitX._arwCapture()
       //@ts-ignore
-      this.artoolkitX.instance.pushVideo(0, image.data.buffer, image.width, image.height)
-      //this.artoolkitX.instance.updateTexture32(image.data)
-      this.artoolkitX._arwCapture()
-      //this._prepareImage(image)
-      const success = this.artoolkitX._arwUpdateAR()
-      if (success >= 0) {
-        this.trackables.forEach((trackable) => {
-          const transformation = this._queryTrackableVisibility(trackable.trackableId)
-          if (transformation) {
-            trackable.transformation = transformation
-            trackable.arCameraViewRH = this.arglCameraViewRHf(transformation)
-            trackable.visible = true
-            trackable.scale = this.height / this.width
-            try {
-              this.dispatchEvent({
-                name: 'getMarker',
-                target: this,
-                data: trackable
-              })
-            } catch (e) {
-              console.error('Error during trackable found event processing ' + e)
+      this.artoolkitX.instance.pushVideo(0, image.data, image.width, image.height)
+      if (this.artoolkitX.isRunning()) {
+        //console.log('running');
+
+        //this.artoolkitX.instance.updateTexture32(image.data)
+        this.artoolkitX._arwCapture()
+        //this._prepareImage(image)
+        const success = this.artoolkitX._arwUpdateAR()
+        if (success >= 0) {
+          this.trackables.forEach((trackable) => {
+            const transformation = this._queryTrackableVisibility(trackable.trackableId)
+            if (transformation) {
+              trackable.transformation = transformation
+              trackable.arCameraViewRH = this.arglCameraViewRHf(transformation)
+              trackable.visible = true
+              trackable.scale = this.height / this.width
+              try {
+                this.dispatchEvent({
+                  name: 'getMarker',
+                  target: this,
+                  data: trackable
+                })
+              } catch (e) {
+                console.error('Error during trackable found event processing ' + e)
+              }
+            } else {
+              trackable.visible = false
             }
-          } else {
-            trackable.visible = false
-          }
-        }, this)
+          }, this)
+        }
       }
     } catch (e) {
       console.error('Unable to detect marker: ' + e)
@@ -382,11 +390,11 @@ export default class ARControllerX {
   * @returns {boolean} true if successfull
   * @private
   */
-  private _prepareImage (sourceImage: ImageObj) {
+  private _prepareImage(sourceImage: ImageObj) {
     if (!sourceImage) {
-    // default to preloaded image
+      // default to preloaded image
       sourceImage = this.image
-    }  
+    }
 
     // this is of type Uint8ClampedArray:
     // The Uint8ClampedArray typed array represents an array of 8-bit unsigned
@@ -402,12 +410,12 @@ export default class ARControllerX {
     this.videoLuma = new Uint8ClampedArray(data.length / 4)
     // Here we have access to the unmodified video image. We now need to add the videoLuma chanel to be able to serve the underlying ARTK API
     if (this.videoLuma) {
-      
+
       let q = 0
 
       // Create luma from video data assuming Pixelformat AR_PIXEL_FORMAT_RGBA
       // see (ARToolKitJS.cpp L: 43)
-      for (let p = 0; p < this.videoSize; p++) {      
+      for (let p = 0; p < this.videoSize; p++) {
         let r = data[q + 0], g = data[q + 1], b = data[q + 2];
         // @see https://stackoverflow.com/a/596241/5843642    
         this.videoLuma[p] = (r + r + r + b + g + g + g + g) >> 3
@@ -415,42 +423,42 @@ export default class ARControllerX {
       }
     }
 
-     // Get access to the video allocation object
-     //const videoMalloc = this.artoolkitX.videoMalloc
-     const params: delegateMethods['videoMalloc'] = this.artoolkitX.instance.videoMalloc;
-     
-     // Copy luma image
-     const videoFrameLumaBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer.buffer, params.lumaFramePointer, params.framesize / 4)
-     videoFrameLumaBytes.set(this.videoLuma)
-     //this.videoLuma = videoLuma
- 
-     // Copy image data into HEAP. HEAP was prepared during videoWeb.c::ar2VideoPushInitWeb()
-     const videoFrameBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer.buffer, params.framepointer, params.framesize)
-     videoFrameBytes.set(data)
-     this.framesize = params.framesize
- 
-     this.artoolkitX.instance.setValue(params.newFrameBoolPtr, 1, 'i8')
-     this.artoolkitX.instance.setValue(params.fillFlagIntPtr, 1, 'i32')
- 
-     // Provide a timestamp to each frame because arvideo2.arUtilTimeSinceEpoch() seems not to perform well with Emscripten.
-     // It internally calls gettimeofday which should not be used with Emscripten according to this: https://github.com/urho3d/Urho3D/issues/916
-     // which says that emscripten_get_now() should be used. However, this seems to have issues too https://github.com/kripken/emscripten/issues/5893
-     // Basically because it relies on performance.now() and performance.now() is supposedly slower then Date.now() but offers greater accuracy.
-     // Or rather should offer but does not anymore because of Spectre (https://en.wikipedia.org/wiki/Spectre_(security_vulnerability))
-     // Bottom line as performance.now() is slower then Date.now() (https://jsperf.com/gettime-vs-now-0/7) and doesn't offer higher accuracy and we
-     // would be calling it for each video frame I decided to read the time per frame from JS and pass it in to the compiled C-Code using a pointer.
-     const time = Date.now()
-     const seconds = Math.floor(time / 1000)
-     const milliSeconds = time - seconds * 1000
-     this.artoolkitX.instance.setValue(params.timeSecPtr, seconds, 'i32')
-     this.artoolkitX.instance.setValue(params.timeMilliSecPtr, milliSeconds, 'i32')
- 
-     const ret = this.artoolkitX._arwCapture()
- 
-     /*if (this.debug) {
-       this.debugDraw()
-     }*/
-     return ret
+    // Get access to the video allocation object
+    //const videoMalloc = this.artoolkitX.videoMalloc
+    const params: delegateMethods['videoMalloc'] = this.artoolkitX.instance.videoMalloc;
+
+    // Copy luma image
+    const videoFrameLumaBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer.buffer, params.lumaFramePointer, params.framesize / 4)
+    videoFrameLumaBytes.set(this.videoLuma)
+    //this.videoLuma = videoLuma
+
+    // Copy image data into HEAP. HEAP was prepared during videoWeb.c::ar2VideoPushInitWeb()
+    const videoFrameBytes = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer.buffer, params.framepointer, params.framesize)
+    videoFrameBytes.set(data)
+    this.framesize = params.framesize
+
+    this.artoolkitX.instance.setValue(params.newFrameBoolPtr, 1, 'i8')
+    this.artoolkitX.instance.setValue(params.fillFlagIntPtr, 1, 'i32')
+
+    // Provide a timestamp to each frame because arvideo2.arUtilTimeSinceEpoch() seems not to perform well with Emscripten.
+    // It internally calls gettimeofday which should not be used with Emscripten according to this: https://github.com/urho3d/Urho3D/issues/916
+    // which says that emscripten_get_now() should be used. However, this seems to have issues too https://github.com/kripken/emscripten/issues/5893
+    // Basically because it relies on performance.now() and performance.now() is supposedly slower then Date.now() but offers greater accuracy.
+    // Or rather should offer but does not anymore because of Spectre (https://en.wikipedia.org/wiki/Spectre_(security_vulnerability))
+    // Bottom line as performance.now() is slower then Date.now() (https://jsperf.com/gettime-vs-now-0/7) and doesn't offer higher accuracy and we
+    // would be calling it for each video frame I decided to read the time per frame from JS and pass it in to the compiled C-Code using a pointer.
+    const time = Date.now()
+    const seconds = Math.floor(time / 1000)
+    const milliSeconds = time - seconds * 1000
+    this.artoolkitX.instance.setValue(params.timeSecPtr, seconds, 'i32')
+    this.artoolkitX.instance.setValue(params.timeMilliSecPtr, milliSeconds, 'i32')
+
+    const ret = this.artoolkitX._arwCapture()
+
+    /*if (this.debug) {
+      this.debugDraw()
+    }*/
+    return ret
   };
 
 
@@ -495,7 +503,7 @@ export default class ARControllerX {
     if (trackableObj.trackableType.includes('single') || trackableObj.trackableType.includes('2d')) {
       if (trackableObj.barcodeId !== undefined) {
         fileName = trackableObj.barcodeId
-        console.log('filename inside barcodeId query', fileName);       
+        console.log('filename inside barcodeId query', fileName);
         if (!this._patternDetection.barcode) {
           this._patternDetection.barcode = true
         }
@@ -512,7 +520,7 @@ export default class ARControllerX {
       if (trackableObj.trackableType.includes('2d')) {
         this.has2DTrackable = true
         trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.height)
-        console.log('2d id: ', trackableId);    
+        console.log('2d id: ', trackableId);
       } else {
         trackableId = this.artoolkitX.addTrackable(trackableObj.trackableType + ';' + fileName + ';' + trackableObj.width)
         console.log('other id: ', trackableId);
@@ -705,16 +713,16 @@ export default class ARControllerX {
    * artoolkitX.LabelingThresholdMode.AR_LABELING_THRESH_MODE_AUTO_BRACKETING
    * {@see https://github.com/artoolkitx/artoolkitx/Source/artoolkitx.js/ARX_bindings.cpp} -> LabelingThresholdMode
    */
-  public setThresholdMode (mode: number) {
+  public setThresholdMode(mode: number) {
     this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE.value, mode)
   };
-          
+
   /**
    * Gets the current threshold mode used for image binarization.
    * @return  {number}        The current threshold mode
    * @see     getVideoThresholdMode()
    */
-  public getThresholdMode () {
+  public getThresholdMode() {
     return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_THRESHOLD_MODE.value)
   };
 
@@ -740,7 +748,7 @@ export default class ARControllerX {
    * and white portions of the markers in the image.
    * @param {number} threshold An integer in the range [0,255] (inclusive).
    */
-  public setThreshold (threshold: number) {
+  public setThreshold(threshold: number) {
     this.threshold = threshold;
     this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_THRESHOLD.value, threshold)
   };
@@ -760,8 +768,8 @@ export default class ARControllerX {
 
     @return {number} The current threshold value.
   */
-  public getThreshold () {
-      return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_THRESHOLD.value)
+  public getThreshold() {
+    return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_THRESHOLD.value)
   };
 
   /**
@@ -795,7 +803,7 @@ export default class ARControllerX {
    * @return {number} The current pattern detection mode. {@see https://github.com/artoolkitx/artoolkitx/Source/artoolkitx.js/ARX_bindings.cpp} -> arPatternDetectionMode
    * Which is represented in JS as artoolkitXjs.[Mode]
    */
-  public getPatternDetectionMode () {
+  public getPatternDetectionMode() {
     return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE.value)
   };
 
@@ -819,16 +827,16 @@ export default class ARControllerX {
       The default mode is artoolkitXjs.ARMatrixCodeType.AR_MATRIX_CODE_3x3.
     {@see https://github.com/artoolkitx/artoolkitx/Source/artoolkitx.js/ARX_bindings.cpp} -> ARMatrixCodeType
    */
-  public setMatrixCodeType (type: number) {
+  public setMatrixCodeType(type: number) {
     this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_MATRIX_CODE_TYPE.value, type)
   };
-          
+
   /**
    * Returns the current matrix code (2D barcode) marker detection type.
    *       
    * @return {number} The current matrix code type. {@link setMatrixCodeType}
    */
-  public getMatrixCodeType () {
+  public getMatrixCodeType() {
     return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_MATRIX_CODE_TYPE.value)
   };
 
@@ -848,17 +856,17 @@ export default class ARControllerX {
     artoolkitX.AR_LABELING_BLACK_REGION
     The default mode is AR_LABELING_BLACK_REGION.
    */
-  public setLabelingMode (mode: number) {
+  public setLabelingMode(mode: number) {
     this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_LABELING_MODE.value, mode)
   };
-          
+
   /**
    * Enquire whether detection is looking for black markers or white markers.
    * See {@link #setLabelingMode}
    *     
    * @result {number} The current labeling mode see {@link setLabelingMode}.
    */
-  public getLabelingMode () {
+  public getLabelingMode() {
     return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_LABELING_MODE.value)
   };
 
@@ -868,16 +876,16 @@ export default class ARControllerX {
    * @param {number}     pattRatio The the width/height of the marker pattern space, as a proportion of marker
    * width/height. To set the default, pass artoolkitX.AR_PATT_RATIO.
    */
-  public setPattRatio (pattRatio: number) {
+  public setPattRatio(pattRatio: number) {
     this.artoolkitX.setTrackerOptionFloat(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE.value, pattRatio)
   };
-          
+
   /**
    * Returns the current ratio of the marker pattern to the total marker size.
    *     
    *  @return {number} The current pattern ratio.
    */
-  public getPattRatio () {
+  public getPattRatio() {
     return this.artoolkitX.getTrackerOptionFloat(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_BORDER_SIZE.value)
   };
 
@@ -902,20 +910,20 @@ export default class ARControllerX {
       artoolkitX.AR_IMAGE_PROC_FIELD_IMAGE
       The default mode is artoolkitX.AR_IMAGE_PROC_FRAME_IMAGE.
    */
-  public setImageProcMode (mode: number) {
+  public setImageProcMode(mode: number) {
     this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_IMAGE_PROC_MODE.value, mode)
   };
-          
+
   /**
    * Get the image processing mode.
    * See {@link #setImageProcMode} for a complete description.
    *
    * @return {number} The current image processing mode.
    */
-  public getImageProcMode () {
+  public getImageProcMode() {
     return this.artoolkitX.getTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_IMAGE_PROC_MODE.value)
   };
-                      
+
 
   // private accessors
   // ----------------------------------------------------------------------------
@@ -931,7 +939,7 @@ export default class ARControllerX {
   /**
    * For ease of use check what kinds of markers have been added and set the detection mode accordingly
    */
-   private _updateDetectionMode() {
+  private _updateDetectionMode() {
     if (this._patternDetection.barcode && this._patternDetection.template) {
       this.setPatternDetectionMode(this.artoolkitX.AR_TEMPLATE_MATCHING_COLOR_AND_MATRIX)
     } else if (this._patternDetection.barcode) {
@@ -947,7 +955,7 @@ export default class ARControllerX {
     * by still providing the automatism to allow to set the pattern detection mode depending on the registered trackables (see {@link #addTrackable}).
     * @param {*} mode see {@link #setPatternDetectionMode}
     */
-   private _setPatternDetectionMode(mode: number) {
+  private _setPatternDetectionMode(mode: number) {
     return this.artoolkitX.setTrackerOptionInt(this.artoolkitX.TrackableOptions.ARW_TRACKER_OPTION_SQUARE_PATTERN_DETECTION_MODE.value, mode)
   }
 
@@ -956,7 +964,7 @@ export default class ARControllerX {
    * @param url of the file to load.
    * @returns the target.
    */
-   private async _loadTrackable(url: string) {
+  private async _loadTrackable(url: string) {
     var target = "/trackable_" + this._marker_count++;
     try {
       let data = await Utils.fetchRemoteData(url);
@@ -972,7 +980,7 @@ export default class ARControllerX {
 
 
   // Internal wrapper to _arwQueryTrackableVisibilityAndTransformation to avoid ccall overhead
-  private _queryTrackableVisibility (trackableId: number) {
+  private _queryTrackableVisibility(trackableId: number) {
     const transformationMatrixElements = 16
     const numBytes = transformationMatrixElements * Float32Array.BYTES_PER_ELEMENT
     this._transMatPtr = this.artoolkitX._malloc(numBytes)

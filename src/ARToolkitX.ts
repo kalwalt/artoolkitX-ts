@@ -77,6 +77,7 @@ export default class ARToolkitX {
   public _arwQueryTrackableVisibilityAndTransformation: (id: number, pointer: number) => Float32Array;
   public _arwCapture: () => number;
   public setValue: (pointer: number, a: number, type: string) => void;
+  public isRunning: () => boolean;
   public stopRunning: () => void;
   public shutdownAR: () => void;
 
