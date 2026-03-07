@@ -31,17 +31,16 @@ int addTrackable(std::string cfg) {
  * @see                 arwStopRunning()
  */
 bool arwStartRunningJS(std::string cparaName, int width, int height) {
-    char buffer [60];
-    sprintf(buffer,"-module=Emscripten -width=%d -height=%d -format=RGBA", width, height);
-    int ret;
+    char buffer[128];
+    // Il modulo di default Emscripten si apre senza errori!
+    snprintf(buffer, sizeof(buffer), "-width=%d -height=%d -format=RGBA", width, height);
 
-    if( cparaName.empty()) {
+    bool ret;
+    if (cparaName.empty()) {
         ret = arwStartRunning(buffer, nullptr);
-    }
-    else {
+    } else {
         ret = arwStartRunning(buffer, cparaName.c_str());
     }
-
     return ret;
 }
 
@@ -65,9 +64,31 @@ int pushVideo(int videoSourceIndex, emscripten::val buff, int width, int height)
     return arwVideoPush(videoSourceIndex, u8.data(), u8.size(), width, height, nullptr, 0, 0, 0, nullptr, 0, 0, 0, nullptr, 0, 0, 0, videoPushReleaseCallback, &frameProcessed);
 }
 
+bool pushVideoPtr(int bufferPtr, int width, int height) {
+    unsigned char* pixels = reinterpret_cast<unsigned char*>(bufferPtr);
+    int frameProcessed = 0;
+
+    // 1. Iniettiamo il frame DIRETTAMENTE nella pipeline di tracking!
+    int ret = arwVideoPush(0, pixels, width * height * 4, width, height,
+                           nullptr, 0, 0, 0, nullptr, 0, 0, 0, nullptr, 0, 0, 0,
+                           nullptr, &frameProcessed);
+
+    // 2. Aggiorniamo anche la texture per il rendering video su schermo
+    arwUpdateTexture32(reinterpret_cast<uint32_t*>(pixels));
+
+    return (ret >= 0);
+}
+
 bool updateTexture32(emscripten::val buffer) {
     auto u8 = emscripten::convertJSArrayToNumberVector<uint8_t>(buffer);
     return arwUpdateTexture32(reinterpret_cast<uint32_t*>(u8.data()));
+}
+
+// Accept a memory pointer instead of a JS array to avoid memory copy overhead
+// Bypass embind overhead by accepting a raw memory pointer
+bool updateTexture32Ptr(int bufferPtr) {
+    // Inject the RGBA pixel array into the Unity video module
+    return arwUpdateTexture32(reinterpret_cast<uint32_t*>(bufferPtr));
 }
 
 VideoParams getVideoParams() {

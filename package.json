@@ -38,14 +38,14 @@
     "url": "https://github.com/kalwalt/artoolkitX-ts/issues"
   },
   "devDependencies": {
-    "@babel/core": "7.26.8",
-    "@babel/plugin-transform-runtime": "7.26.8",
-    "@babel/preset-env": "7.26.8",
-    "babel-loader": "9.2.1",
-    "ts-loader": "9.5.2",
-    "typedoc": "0.27.7",
+    "@babel/core": "7.29.0",
+    "@babel/plugin-transform-runtime": "7.29.0",
+    "@babel/preset-env": "7.29.0",
+    "babel-loader": "10.1.0",
+    "ts-loader": "9.5.4",
+    "typedoc": "0.28.17",
     "typescript": "5.7.3",
-    "webpack": "5.97.1",
+    "webpack": "5.104.1",
     "webpack-cli": "6.0.1"
   },
   "scripts": {
@@ -54,14 +54,15 @@
     "build": "node tools/makem.js; echo Built at `date`",
     "build-ts": "webpack --mode production",
     "setup-docker": "docker run -dit --name emscripten-artoolkitx-ts -v $(pwd):/src emscripten/emsdk:3.1.38 bash",
-    "buidl-docker-w-deps": "./opencv-em.sh && npm run build-docker-w-node",
+    "build-docker-w-deps": "./opencv-em.sh && npm run build-docker-w-node",
     "build-docker-w-node": "docker exec emscripten-artoolkitx-ts npm run build",
     "build-docker": "docker exec emscripten-artoolkitx-ts emcmake cmake -DCMAKE_TOOLCHAIN_FILE=${EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -B emscripten/artoolkitx.js/build -S emscripten/artoolkitx.js ..",
     "build-docker-w-make": "docker exec emscripten-artoolkitx-ts emmake make VERBOSE=1 -C emscripten/artoolkitx.js/build"
   },
   "license": "LGPL-3.0",
   "dependencies": {
-    "@babel/runtime": "^7.26.7",
-    "axios": "^1.7.9"
+    "@babel/runtime": "^7.24.7",
+    "axios": "1.13.5",
+    "regenerator-runtime": "^0.14.1"
   }
 }

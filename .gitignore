@@ -7,3 +7,4 @@ Makefile
 emscripten/artoolkitx.js/build/*
 emscripten/artoolkitx/*
 opencv-em
+.agents

@@ -12,7 +12,9 @@ int addTrackable(std::string cfg);
 bool arwStartRunningJS(std::string cparaName, int width, int height);
 int pushVideoInit(int videoSourceIndex, int width, int height, std::string pixelFormat, int camera_index, int camera_face);
 int pushVideo(int videoSourceIndex, emscripten::val buff, int width, int height);
+bool pushVideoPtr(int bufferPtr, int width, int height);
 bool updateTexture32(emscripten::val buffer);
+bool updateTexture32Ptr(int bufferPtr);
 
 struct VideoParams {
     int width;

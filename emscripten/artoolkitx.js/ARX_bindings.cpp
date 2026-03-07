@@ -57,6 +57,7 @@ EMSCRIPTEN_BINDINGS(constant_bindings) {
   function("arwStartRunningJS", &arwStartRunningJS);
   function("pushVideoInit", &pushVideoInit);
   function("pushVideo", &pushVideo);
+  function("pushVideoPtr", &pushVideoPtr);
   function("getError", &arwGetError);
 
   function("isRunning", &arwIsRunning);
@@ -76,6 +77,7 @@ EMSCRIPTEN_BINDINGS(constant_bindings) {
   function("capture", &arwCapture);
   function("updateAR", &arwUpdateAR);
   function("updateTexture32", &updateTexture32);
+  function("updateTexture32Ptr", &updateTexture32Ptr);
 
   /*** Video stream retrieval and/or drawing ***/
 

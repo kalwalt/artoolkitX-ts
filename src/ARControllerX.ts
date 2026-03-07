@@ -181,6 +181,8 @@ export default class ARControllerX {
   private has2DTrackable: boolean;
   private _bwpointer: number;
   private threshold: number;
+  private _videoBufferPtr: number = 0;
+  private _videoHeapView: Uint8Array | null = null;
 
   /**
    * The ARControllerX constructor. It has 4 params (see above).
@@ -245,6 +247,8 @@ export default class ARControllerX {
     this.default2dHeight = 0.001
     this.has2DTrackable
     this.threshold
+    this._videoBufferPtr = 0;
+    this._videoHeapView = null;
   }
 
   static async init(image: ImageObj, cameraUrl: string, width: number, height: number) {
@@ -266,42 +270,36 @@ export default class ARControllerX {
   }
 
   async start() {
-    let success = this.artoolkitX.initialiseAR()
+    let success = this.artoolkitX.initialiseAR();
     if (success) {
-      console.debug('Version: ' + this.artoolkitX.getARToolKitVersion())
-      // Only try to load the camera parameter file if an URL was provided
-      let arCameraURL: string = ''
-
+      let arCameraURL: string = '';
       if (this.cameraParaFileURL !== '') {
         try {
-          arCameraURL = await this.artoolkitX.loadCameraParam(this.cameraParaFileURL)
-          console.log(arCameraURL);
-
+          arCameraURL = await this.artoolkitX.loadCameraParam(this.cameraParaFileURL);
         } catch (e) {
-          throw new Error('Error loading camera param: ' + e)
+          throw new Error('Error loading camera param: ' + e);
         }
       }
-      success = this.artoolkitX.arwStartRunningJS(arCameraURL, this.videoWidth, this.videoHeight)
-      //success = this.artoolkitX.pushVideoInit(0, this.videoWidth, this.videoHeight, 'RGBA', 0, 0)
-      console.log(success);
+
+      success = this.artoolkitX.arwStartRunningJS(arCameraURL, this.videoWidth, this.videoHeight);
 
       if (success >= 0) {
-        console.info(' artoolkitX-ts started')
-        // @ts-ignore
-        //success = this.artoolkitX.instance.capture()
-        let ret = this.artoolkitX.pushVideoInit(0, this.videoWidth, this.videoHeight, 'RGBA', 0, 0)
-        //console.log("ret", ret);
+        console.info(' artoolkitX-ts started');
 
-        if (success < 0) {
-          throw new Error('Error while starting pushVideoInit')
-        }
+        // Allocate the memory block in the WASM heap for the video frame (RGBA = 4 bytes)
+        const bufferSize = this.videoWidth * this.videoHeight * 4;
+        this._videoBufferPtr = this.artoolkitX._malloc(bufferSize);
+
+        // Create a TypedArray view pointing directly to the allocated WASM memory
+        // @ts-ignore
+        this._videoHeapView = new Uint8Array(this.artoolkitX.instance.HEAPU8.buffer, this._videoBufferPtr, bufferSize);
+
       } else {
-        throw new Error('Error while starting')
+        throw new Error('Error while starting');
       }
     } else {
-      throw new Error('Error while starting')
+      throw new Error('Error while starting');
     }
-
   }
 
   /**
@@ -315,6 +313,12 @@ export default class ARControllerX {
     /*if (this.image && this.image.srcObject) {
       this[_teardownVideo]()
     }*/
+    // Free the allocated video buffer from the WASM heap
+    if (this._videoBufferPtr !== 0) {
+      this.artoolkitX._free(this._videoBufferPtr);
+      this._videoBufferPtr = 0;
+      this._videoHeapView = null;
+    }
     this.artoolkitX.stopRunning()
     this.artoolkitX.shutdownAR()
     for (var t in this) {
@@ -344,40 +348,50 @@ export default class ARControllerX {
 
   public _processImage(image: ImageObj) {
     try {
-      //@ts-ignore
-      this.artoolkitX.instance.pushVideo(0, image.data, image.width, image.height)
-      if (this.artoolkitX.isRunning()) {
-        //console.log('running');
+      if (!this.artoolkitX.isRunning() || !this._videoHeapView) {
+        return;
+      }
 
-        //this.artoolkitX.instance.updateTexture32(image.data)
-        this.artoolkitX._arwCapture()
-        //this._prepareImage(image)
-        const success = this.artoolkitX._arwUpdateAR()
+      // 1. Copia ultra-veloce nell'heap di WASM
+      this._videoHeapView.set(image.data);
+
+      // 2. Spingi i pixel nel VERO buffer di computer vision
+      // @ts-ignore
+      const pushed = this.artoolkitX.instance.pushVideoPtr(this._videoBufferPtr, image.width, image.height);
+
+      if (pushed) {
+        // 3. Estrae il frame dalla coda di push
+        this.artoolkitX._arwCapture();
+        // 4. ESEGUE IL TRACKING! (Ora vede l'immagine!)
+        const success = this.artoolkitX._arwUpdateAR();
+
         if (success >= 0) {
           this.trackables.forEach((trackable) => {
-            const transformation = this._queryTrackableVisibility(trackable.trackableId)
+            const transformation = this._queryTrackableVisibility(trackable.trackableId);
+
             if (transformation) {
-              trackable.transformation = transformation
-              trackable.arCameraViewRH = this.arglCameraViewRHf(transformation)
-              trackable.visible = true
-              trackable.scale = this.height / this.width
+              trackable.transformation = transformation;
+              trackable.arCameraViewRH = this.arglCameraViewRHf(transformation);
+              trackable.visible = true;
+              trackable.scale = this.height / this.width;
+
               try {
                 this.dispatchEvent({
                   name: 'getMarker',
                   target: this,
                   data: trackable
-                })
+                });
               } catch (e) {
-                console.error('Error during trackable found event processing ' + e)
+                console.error('Error during trackable found event processing ' + e);
               }
             } else {
-              trackable.visible = false
+              trackable.visible = false;
             }
-          }, this)
+          }, this);
         }
       }
     } catch (e) {
-      console.error('Unable to detect marker: ' + e)
+      console.error('Unable to detect marker: ' + e);
     }
   }
 
@@ -390,7 +404,7 @@ export default class ARControllerX {
   * @returns {boolean} true if successfull
   * @private
   */
-  private _prepareImage(sourceImage: ImageObj) {
+  /*private _prepareImage(sourceImage: ImageObj) {
     if (!sourceImage) {
       // default to preloaded image
       sourceImage = this.image
@@ -454,12 +468,12 @@ export default class ARControllerX {
     this.artoolkitX.instance.setValue(params.timeMilliSecPtr, milliSeconds, 'i32')
 
     const ret = this.artoolkitX._arwCapture()
-
+*/
     /*if (this.debug) {
       this.debugDraw()
     }*/
-    return ret
-  };
+  /*  return ret
+  };*/
 
 
   /**

@@ -48,6 +48,8 @@ export default class ARControllerX {
     private has2DTrackable;
     private _bwpointer;
     private threshold;
+    private _videoBufferPtr;
+    private _videoHeapView;
     constructor(image: object, cameraPara: string, confWidth: number, confHeight: number);
     static init(image: ImageObj, cameraUrl: string, width: number, height: number): Promise<ARControllerX>;
     private _initialize;
@@ -55,7 +57,6 @@ export default class ARControllerX {
     dispose(): void;
     process(image: ImageObj): Promise<void>;
     _processImage(image: ImageObj): void;
-    private _prepareImage;
     getCameraProjMatrix(nearPlane?: number, farPlane?: number): Float32Array<ArrayBufferLike>;
     addTrackable(trackableObj: ITrackableObj): Promise<number>;
     addEventListener(name: string, callback: object): void;
