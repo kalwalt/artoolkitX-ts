@@ -283,8 +283,17 @@ export default class ARControllerX {
         }
       }
 
+      /*let init = this.artoolkitX.pushVideoInit(0, this.videoWidth, this.videoHeight, 'RGBA', 0, 0);
+      if (!init) {
+        console.error("Error while initializing video push");
+        return;
+      }*/
       success = this.artoolkitX.arwStartRunningJS(arCameraURL, this.videoWidth, this.videoHeight);
-
+      let init = this.artoolkitX.pushVideoInit(0, this.videoWidth, this.videoHeight, 'RGBA', 0, 0);
+      if (!init) {
+        console.error("Error while initializing video push");
+        return;
+      }
       if (success >= 0) {
         console.info(' artoolkitX-ts started');
 
@@ -484,9 +493,9 @@ export default class ARControllerX {
 
     const ret = this.artoolkitX._arwCapture()
 */
-    /*if (this.debug) {
-      this.debugDraw()
-    }*/
+  /*if (this.debug) {
+    this.debugDraw()
+  }*/
   /*  return ret
   };*/
 
