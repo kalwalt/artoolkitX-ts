@@ -56,6 +56,7 @@ export default class ARControllerX {
     start(): Promise<void>;
     dispose(): void;
     process(image: ImageObj): Promise<void>;
+    videoPush(data: Uint8Array, width: number, height: number): number;
     _processImage(image: ImageObj): void;
     getCameraProjMatrix(nearPlane?: number, farPlane?: number): Float32Array<ArrayBufferLike>;
     addTrackable(trackableObj: ITrackableObj): Promise<number>;

@@ -33,7 +33,7 @@ int addTrackable(std::string cfg) {
 bool arwStartRunningJS(std::string cparaName, int width, int height) {
     char buffer[128];
     // Il modulo di default Emscripten si apre senza errori!
-    snprintf(buffer, sizeof(buffer), "-width=%d -height=%d -format=RGBA", width, height);
+    snprintf(buffer, sizeof(buffer), "-module=Emscripten -width=%d -height=%d -format=RGBA", width, height);
 
     bool ret;
     if (cparaName.empty()) {

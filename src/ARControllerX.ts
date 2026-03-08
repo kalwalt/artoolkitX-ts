@@ -98,6 +98,8 @@ interface delegateMethods {
   loadCameraParam: (cameraParam: string) => Promise<string>;
   arwStartRunningJS: (arCameraURL: string, width: number, height: number) => number;
   pushVideoInit: (n: number, width: number, height: number, pixelformat: string, a: number, b: number) => number;
+  pushVideo: (n: number, data: Uint8Array, width: number, height: number) => number;
+  pushVideoPtr: (ptr: number, width: number, height: number) => boolean;
   isInitialized: () => boolean;
   _arwUpdateAR: () => number;
   _malloc: (numBytes: number) => number;
@@ -346,18 +348,31 @@ export default class ARControllerX {
     }
   }
 
+  /**
+   * Pushes a video frame to the ARToolKitX instance.
+   * This is useful when you want to handle the video frame allocation yourself
+   * or if you're using a pixel format that isn't RGBA8888.
+   * 
+   * @param {Uint8Array} data The video frame data.
+   * @param {number} width The width of the video frame.
+   * @param {number} height The height of the video frame.
+   * @returns {number} The result of pushing the video frame.
+   */
+  public videoPush(data: Uint8Array, width: number, height: number): number {
+    return this.artoolkitX.pushVideo(0, data, width, height);
+  }
+
   public _processImage(image: ImageObj) {
     try {
       if (!this.artoolkitX.isRunning() || !this._videoHeapView) {
         return;
       }
 
-      // 1. Copia ultra-veloce nell'heap di WASM
+      // 1. Ultra-fast copy to WASM heap
       this._videoHeapView.set(image.data);
 
-      // 2. Spingi i pixel nel VERO buffer di computer vision
-      // @ts-ignore
-      const pushed = this.artoolkitX.instance.pushVideoPtr(this._videoBufferPtr, image.width, image.height);
+      // 2. Push pixels to the REAL computer vision buffer
+      const pushed = this.artoolkitX.pushVideoPtr(this._videoBufferPtr, image.width, image.height);
 
       if (pushed) {
         // 3. Estrae il frame dalla coda di push
