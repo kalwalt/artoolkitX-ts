@@ -25,7 +25,7 @@ var HAVE_2D = 1;
 
 
 var EMSCRIPTEN_ROOT = process.env.EMSCRIPTEN;
-var ARTOOLKITX_ROOT = process.env.ARTOOLKITX_ROOT || path.resolve(__dirname, "../emscripten/artoolkitx/artoolkitX");
+var ARTOOLKITX_ROOT = process.env.ARTOOLKITX_ROOT || path.resolve(__dirname, "../emscripten/artoolkitx");
 
 if (!EMSCRIPTEN_ROOT) {
     console.log("\nWarning: EMSCRIPTEN environment variable not found.")
@@ -273,7 +273,7 @@ FLAGS += ' --bind ';
 FLAGS += ' -msse -msse2 -msse3 -mssse3 -msimd128 '
 FLAGS += ' -fwasm-exceptions -mbulk-memory -mnontrapping-fptoint -msse4.2 -sWASM_BIGINT -sSUPPORT_LONGJMP=wasm '
 
-var PROJECT_SOURCE_DIR = path.resolve( ARTOOLKITX_ROOT + '/Source');
+var PROJECT_SOURCE_DIR = path.resolve(ARTOOLKITX_ROOT + '/Source');
 
 var EXPORT_FUNCTIONS = " -s EXPORTED_FUNCTIONS='['_arwUpdateAR', '_arwCapture', '_arwGetProjectionMatrix', '_arwQueryTrackableVisibilityAndTransformation', '_arwGetTrackablePatternConfig', '_arwGetTrackablePatternImage', '_arwLoadOpticalParams', '_malloc', '_free']' ";
 var EXPORTED_RUNTIME_FUNCTIONS = " -s EXPORTED_RUNTIME_METHODS='['ccall', 'cwrap', 'FS', 'setValue']' ";
@@ -325,31 +325,31 @@ var INCLUDES_OCVT = [
 ].map(function (s) { return '-I' + s }).join(' ');
 
 var INCLUDES_OPENCV = [
-    path.resolve(__dirname,  '../opencv-em/build_opencv/'),
-    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/'),
-    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/include/'),
-    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/modules/core/include'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/libs/opencv/'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/libs/opencv/include/'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/libs/opencv/modules/core/include'),
     //path.resolve(__dirname, ARTOOLKITX_ROOT + '/opencv-em/build_opencv/libs/opencv/modules/highgui/include/'),
-    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/modules/imgcodecs/include/'),
-    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/modules/videoio/include/'),
-    path.resolve(__dirname,  '../opencv-em/build_opencv/libs/opencv/modules/imgproc/include/'),
-    path.resolve(__dirname,   '../opencv-em/build_opencv/libs/opencv/modules/calib3d/include/'),
-    path.resolve(__dirname,   '../opencv-em/build_opencv/libs/opencv/modules/features2d/include/'),
-    path.resolve(__dirname,   '../opencv-em/build_opencv/libs/opencv/modules/flann/include/'),
-    path.resolve(__dirname,   '../opencv-em/build_opencv/libs/opencv/modules/video/include/'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/libs/opencv/modules/imgcodecs/include/'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/libs/opencv/modules/videoio/include/'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/libs/opencv/modules/imgproc/include/'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/libs/opencv/modules/calib3d/include/'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/libs/opencv/modules/features2d/include/'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/libs/opencv/modules/flann/include/'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/libs/opencv/modules/video/include/'),
 ].map(function (s) { return '-I' + s }).join(' ');
 
 var OPENCV_LIBS = [
-	path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_calib3d.a'),
-	path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_core.a'),
-	path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_features2d.a'),
-	path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_flann.a'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/lib/libopencv_calib3d.a'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/lib/libopencv_core.a'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/lib/libopencv_features2d.a'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/lib/libopencv_flann.a'),
     //path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_highgui.a'),
-	//path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_imgcodecs.a'),
-    path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_imgproc.a'),
-	path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_video.a'),
+    //path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_imgcodecs.a'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/lib/libopencv_imgproc.a'),
+    path.resolve(__dirname, '../opencv-em/build_opencv/lib/libopencv_video.a'),
     //path.resolve(__dirname,   '../opencv-em/build_opencv/lib/libopencv_videoio.a'),
-].map(function(s) { return ' ' + s }).join(' ');
+].map(function (s) { return ' ' + s }).join(' ');
 
 var ALL_BC = [
     path.resolve(OUTPUT_PATH + '/libarx.o'),
@@ -437,9 +437,9 @@ var compile_arxlib = format(EMCC + ' ' + INCLUDES + ' '
 var compile_wasm_es6 = format(EMCC + ' ' + INCLUDES + ' '
     + INCLUDES_ARX + ' ' + INCLUDES_AR2 + ' ' + INCLUDES_ARG + ' '
     + INCLUDES_ARUTIL + ' ' + INCLUDES_ARVIDEO + ' ' + INCLUDES_OCVT + ' '
-    + INCLUDES_OPENCV + ' ' + ARTOOLKITX_LIBS + ' ' +  OPENCV_LIBS + ' ' + artoolkitxjs_sources.join(' ') + ' '
+    + INCLUDES_OPENCV + ' ' + ARTOOLKITX_LIBS + ' ' + OPENCV_LIBS + ' ' + artoolkitxjs_sources.join(' ') + ' '
     + FLAGS + ' ' + DEFINES + ES6_FLAGS + WASM_FLAGS_SINGLE_FILE
-    + EXPORT_FUNCTIONS + EXPORTED_RUNTIME_FUNCTIONS  + POST_FLAGS
+    + EXPORT_FUNCTIONS + EXPORTED_RUNTIME_FUNCTIONS + POST_FLAGS
     + " -o {OUTPUT_PATH}{BUILD_WASM_ES6_FILE} ",
     OUTPUT_PATH,
     BUILD_WASM_ES6_FILE);
