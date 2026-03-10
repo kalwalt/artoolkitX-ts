@@ -3,7 +3,7 @@ interface ImageObj {
     width: number;
     videoHeight: number;
     height: number;
-    data: Uint8ClampedArray;
+    data: Uint8ClampedArray<any>;
 }
 interface ITrackableObj {
     width: number;
@@ -48,15 +48,17 @@ export default class ARControllerX {
     private has2DTrackable;
     private _bwpointer;
     private threshold;
+    private _videoBufferPtr;
+    private _videoHeapView;
     constructor(image: object, cameraPara: string, confWidth: number, confHeight: number);
     static init(image: ImageObj, cameraUrl: string, width: number, height: number): Promise<ARControllerX>;
     private _initialize;
     start(): Promise<void>;
     dispose(): void;
     process(image: ImageObj): Promise<void>;
+    videoPush(data: Uint8Array, width: number, height: number): number;
     _processImage(image: ImageObj): void;
-    private _prepareImage;
-    getCameraProjMatrix(nearPlane?: number, farPlane?: number): Float32Array;
+    getCameraProjMatrix(nearPlane?: number, farPlane?: number): Float32Array<ArrayBufferLike>;
     addTrackable(trackableObj: ITrackableObj): Promise<number>;
     addEventListener(name: string, callback: object): void;
     removeEventListener(name: string, callback: object): void;
@@ -65,10 +67,10 @@ export default class ARControllerX {
         target: any;
         data?: object;
     }): void;
-    transMatToGLMat(transMat: Float64Array, glMat: Float64Array, scale?: number): Float64Array;
-    arglCameraViewRHf(glMatrix: Float32Array, glRhMatrix?: Float32Array, scale?: number): Float32Array;
-    getTransformationMatrix(): Float64Array;
-    getCameraMatrix(): Float32Array;
+    transMatToGLMat(transMat: Float64Array, glMat: Float64Array, scale?: number): Float64Array<ArrayBufferLike>;
+    arglCameraViewRHf(glMatrix: Float32Array, glRhMatrix?: Float32Array, scale?: number): Float32Array<ArrayBufferLike>;
+    getTransformationMatrix(): Float64Array<ArrayBufferLike>;
+    getCameraMatrix(): Float32Array<ArrayBufferLike>;
     setLogLevel(mode: boolean): number;
     getLogLevel(): number;
     setThresholdMode(mode: number): void;

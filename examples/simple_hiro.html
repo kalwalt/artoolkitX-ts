@@ -32,7 +32,9 @@
     canvas_process.width = width
     canvas_process.height = height
 
-    context_process = canvas_process.getContext('2d')
+    context_process = canvas_process.getContext('2d', {
+      willReadFrequently: true,
+    })
     let imageData;
 
     let fov = 0.8 * 180 / Math.PI;

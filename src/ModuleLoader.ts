@@ -33,6 +33,7 @@
  *  Author(s): Walter Perdan @kalwalt https://github.com/kalwalt
  *
  */
+// @ts-ignore
 import Module from '../build/artoolkitxES6'
 
 const ModuleLoader = {

@@ -59,7 +59,10 @@ export default class ARToolkitX {
   public isInitialized: () => boolean;
   public getARToolKitVersion: () => number;
   public arwStartRunningJS: (arCameraURL: string, width: number, height: number) => number;
-  public pushVideoInit: (n: number, width: number, height: number, pixelformat: string, a: number, b: number) => number;
+  public  pushVideoInit!: (videoSourceIndex: number, width: number, height: number, pixelFormat: string, camera_index: number, camera_face: number) => number;
+  pushVideo!: (videoSourceIndex: number, buff: Uint8Array, width: number, height: number) => number;
+  pushVideoPtr!: (bufferPtr: number, width: number, height: number) => boolean;
+  getError!: () => string;
   public _arwUpdateAR: () => number;
   public _malloc: (numBytes: number) => number;
   public _free: (pointer: number) => void;
@@ -77,6 +80,7 @@ export default class ARToolkitX {
   public _arwQueryTrackableVisibilityAndTransformation: (id: number, pointer: number) => Float32Array;
   public _arwCapture: () => number;
   public setValue: (pointer: number, a: number, type: string) => void;
+  public isRunning: () => boolean;
   public stopRunning: () => void;
   public shutdownAR: () => void;
 
@@ -186,6 +190,8 @@ export default class ARToolkitX {
       'loadOpticalParams',
 
       'pushVideoInit',
+      'pushVideo',
+      'pushVideoPtr',
 
       'removeAllTrackables',
       'removeTrackable',
@@ -200,6 +206,7 @@ export default class ARToolkitX {
       'shutdownAR',
       'stopRunning',
       'updateAR',
+      'updateTexture32',
 
       'videoMalloc',
 

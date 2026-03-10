@@ -16,7 +16,10 @@ export default class ARToolkitX {
     isInitialized: () => boolean;
     getARToolKitVersion: () => number;
     arwStartRunningJS: (arCameraURL: string, width: number, height: number) => number;
-    pushVideoInit: (n: number, width: number, height: number, pixelformat: string, a: number, b: number) => number;
+    pushVideoInit: (videoSourceIndex: number, width: number, height: number, pixelFormat: string, camera_index: number, camera_face: number) => number;
+    pushVideo: (videoSourceIndex: number, buff: Uint8Array, width: number, height: number) => number;
+    pushVideoPtr: (bufferPtr: number, width: number, height: number) => boolean;
+    getError: () => string;
     _arwUpdateAR: () => number;
     _malloc: (numBytes: number) => number;
     _free: (pointer: number) => void;
@@ -34,6 +37,7 @@ export default class ARToolkitX {
     _arwQueryTrackableVisibilityAndTransformation: (id: number, pointer: number) => Float32Array;
     _arwCapture: () => number;
     setValue: (pointer: number, a: number, type: string) => void;
+    isRunning: () => boolean;
     stopRunning: () => void;
     shutdownAR: () => void;
     setLogLevel: (mode: boolean) => number;
